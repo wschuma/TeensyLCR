@@ -3,7 +3,7 @@
 
 #include <Arduino.h>
 #include "XPT2046_Touchscreen.h"
-#include <board.h>
+#include "board.h"
 
 static const uint MAIN_DISPLAY_X = 31;
 static const uint MAIN_DISPLAY_Y_PRIMARY = 3;

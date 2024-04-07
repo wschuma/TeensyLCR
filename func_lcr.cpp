@@ -716,7 +716,7 @@ void lcrSetAveraging()
 
 void lcr_select_func()
 {
-  lcrSettings.function = get_list_entry(functionLabels, LCR_FUNC_NUM, lcrSettings.function, &encoder);
+  lcrSettings.function = get_list_entry(functionLabels, LCR_FUNC_NUM, lcrSettings.function);
   functionLabelSelection = functionLabels[lcrSettings.function];
   tft.fillScreen(ILI9341_BLACK);
   lcrDrawMeasSetup();
