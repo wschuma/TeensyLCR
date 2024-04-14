@@ -8,6 +8,8 @@
 
 # Features
 
+## LCR Meter
+
  - Basic accuracy of at least 1%
  - There are four ranges: 100R, 1k, 10k, 100k. The range will be selected automatically according to the impedance of the DUT.
  - Selectable test frequencies: 100 Hz to 90 kHz in 100 Hz steps.
@@ -34,6 +36,21 @@ Save screenshots to USB thump drive:
 
 ![screenshot](docs/screenshot_2024-04-12_20-04-12.bmp)
 
+## Frequency Generator
+
+ - A simple frequency generator for debug purpose
+ - Signal output at HCUR connector
+ - Waveforms: sinus only
+ - Frequency: 1Hz - 90kHz
+ - Amplitude: 1mVp - 2.4Vp
+ - Offset: 0 - 1V
+ - about 100R output impedance
+
+## Volt Meter
+
+ - A simple voltmeter for debug purpose
+ - use HPOT and LPOT inputs
+
 # Hardware
 
 ![Board](docs/Board%20Top%20View.png)
@@ -46,7 +63,7 @@ Save screenshots to USB thump drive:
  - temperature sensor near codec to measure board temperature
  - I2C eeprom to store calibration data and other settings
 
-# SW Implementation details
+# Software implementation details
 
  - Teensy Audio design:
 
