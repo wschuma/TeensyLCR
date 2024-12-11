@@ -54,8 +54,8 @@ void sysMenuUpdate()
 
   tft.print("USB:");
   tft.setCursor(120, tft.getCursorY());
-  if(!usbDrive.msDriveInfo.connected) 
-    tft.println("not ");
+  if(!usbDrive.msDriveInfo.connected)
+    tft.print("not ");
   tft.println("connected");
 }
 
