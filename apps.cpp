@@ -2,7 +2,6 @@
 #include "func_lcr.h"
 #include "func_generator.h"
 #include "func_dvm.h"
-#include <ili9341_t3n_font_Arial.h>
 
 
 BtnBarMenu appSelectMenu(&tft);

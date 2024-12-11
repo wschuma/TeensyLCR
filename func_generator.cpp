@@ -22,7 +22,6 @@ const char *waves[] = {"Sine", "Square"};
 const char *waveOpt;
 
 BtnBarMenu genMenu(&tft);
-int menuBtnFreq, menuBtnAmpl, menuBtnOffset, menuBtnWave;
 
 void displayValues()
 {
@@ -169,6 +168,8 @@ void printTemp() {
 void generatorApplication()
 {
   // setup
+  int menuBtnFreq, menuBtnAmpl, menuBtnOffset, menuBtnWave;
+  
   outputOn = false;
   adSetOutputAmplitude(0);
   adSetOutputOffset(0);
