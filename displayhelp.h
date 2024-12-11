@@ -27,6 +27,8 @@ bool enterNr(uint* val, int min, int max);
 float enterFloat(uint maxDigits, bool volt);
 bool enterFloat(float* val, float min, float max);
 bool enterFrequency(float* f, float max);
+bool enterTime(int* hr, int* min);
+bool enterDate(int* day, int* month, int* yr);
 void getDisplValue(float v, uint digits, int resolution, disp_val_t* out);
 void getDisplValueExt(float v, uint digits, int resolution, disp_val_t* out, bool fixed);
 bool getTouchPoint(TS_Point* p);

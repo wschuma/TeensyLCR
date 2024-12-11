@@ -16,6 +16,7 @@ static const uint8_t INPUT_FIELD_X = 75;
 static const uint8_t INPUT_FIELD_Y = 80;
 static const uint8_t INPUT_FIELD_W = 170;
 static const uint8_t INPUT_FIELD_H = 40;
+static const uint8_t INPUT_FIELD_CURSOR_Y = INPUT_FIELD_Y + 6;
 
 static const uint8_t LIST_X = 30;
 static const uint8_t LIST_Y = 30;
@@ -110,31 +111,100 @@ uint get_list_entry(const char** list, uint length, uint selected)
   return idx;
 }
 
-void drawInputField(String s)
+/*
+ * Draw input field and set text color and font. Set cursor to left position.
+ * Doesn't update screen.
+ */
+void drawInputField()
 {
   tft.fillRect(INPUT_FIELD_X, INPUT_FIELD_Y, INPUT_FIELD_W, INPUT_FIELD_H, ILI9341_NAVY);
   tft.drawRect(INPUT_FIELD_X, INPUT_FIELD_Y, INPUT_FIELD_W, INPUT_FIELD_H, ILI9341_WHITE);
   tft.setTextColor(ILI9341_WHITE);
   tft.setFont(Arial_24);
-  tft.setCursor(INPUT_FIELD_X + 4, INPUT_FIELD_Y + 4);
+  tft.setCursor(INPUT_FIELD_X + 4, INPUT_FIELD_CURSOR_Y);
+}
+
+/*
+ * Draw input field, left justified string and cursor. Updates the screen.
+ */
+void drawInputField(String s)
+{
+  drawInputField();
   tft.print(s);
   tft.print("_");
   tft.updateScreen();
 }
 
+/*
+ * Draw input field and right justified float. Updates the screen.
+ */
 void drawInputField(float v)
 {
-  tft.fillRect(INPUT_FIELD_X, INPUT_FIELD_Y, INPUT_FIELD_W, INPUT_FIELD_H, ILI9341_NAVY);
-  tft.drawRect(INPUT_FIELD_X, INPUT_FIELD_Y, INPUT_FIELD_W, INPUT_FIELD_H, ILI9341_WHITE);
-  tft.setTextColor(ILI9341_WHITE);
-  tft.setFont(Arial_24);
-  tft.setCursor(INPUT_FIELD_X + 4, INPUT_FIELD_Y + 4);
+  drawInputField();
   String s = String(v, 1);
   int16_t x, y;
   uint16_t w, h;
   tft.getTextBounds(s, 0, 0, &x, &y, &w, &h);
-  tft.setCursor(INPUT_FIELD_X + INPUT_FIELD_W - 4 - w, INPUT_FIELD_Y + 4);
+  tft.setCursor(INPUT_FIELD_X + INPUT_FIELD_W - 4 - w, INPUT_FIELD_CURSOR_Y);
   tft.print(s);
+  tft.updateScreen();
+}
+
+/*
+ * Draw input field and time. Updates the screen.
+ */
+void drawInputFieldTime(int hr, int min, int cursor = -1)
+{
+  drawInputField();
+  if (hr < 10)
+    tft.print("0");
+  tft.print(hr);
+  tft.print(":");
+  if (min < 10)
+    tft.print("0");
+  tft.print(min);
+  if (cursor >= 0) {
+    if (cursor == 1)
+      cursor = 18;
+    else if (cursor == 2)
+      cursor = 45;
+    else if (cursor >= 3)
+      cursor = 63;
+    tft.setCursor(INPUT_FIELD_X + 4 + cursor, INPUT_FIELD_CURSOR_Y);
+    tft.print("_");
+  }
+  tft.updateScreen();
+}
+
+/*
+ * Draw input field and date. Updates the screen.
+ */
+void drawInputFieldDate(int d, int m, int yr, int cursor = -1)
+{
+  drawInputField();
+  if (d < 10)
+    tft.print("0");
+  tft.print(d);
+  tft.print(".");
+  if (m < 10)
+    tft.print("0");
+  tft.print(m);
+  tft.print(".");
+  tft.print(yr);
+  if (cursor >= 0) {
+    if (cursor == 1)
+      cursor = 18;
+    else if (cursor == 2)
+      cursor = 45;
+    else if (cursor == 3)
+      cursor = 63;
+    else if (cursor == 4)
+      cursor = 126;
+    else if (cursor >= 5)
+      cursor = 144;
+    tft.setCursor(INPUT_FIELD_X + 4 + cursor, INPUT_FIELD_CURSOR_Y);
+    tft.print("_");
+  }
   tft.updateScreen();
 }
 
@@ -337,7 +407,7 @@ float enterFloat(uint maxDigits, bool volt)
   float factor = 1;
 
   BtnBarMenu menu(&tft);
-  int menuBtnVrms, menuBtnVp, menuBtnVpp;
+  int menuBtnVrms = 0, menuBtnVp, menuBtnVpp = 0;
   menu.init(btn_feedback);
   if (volt) {
     menuBtnVrms = menu.add("V rms");
@@ -461,6 +531,164 @@ bool enterFrequency(float* f, float max)
   
   *f = val * 1000;
   return true;
+}
+
+bool enterTime(int* hr, int* min)
+{
+  int cursor = 0;
+  uint inp;
+  char key = 0;
+  int btn;
+  
+  BtnBarMenu menu(&tft);
+  menu.init(btn_feedback);
+  int menuBtnOk = menu.add("OK");
+  int menuBtnCancel = menu.add("Cancel");
+  menu.draw();
+
+  drawInputFieldTime(*hr, *min, cursor);
+  
+  TS_Point p;
+  while(1)
+  {
+    key = keypad.getKey();
+
+    if (key)
+    {
+      if ((int(key) >= 48) && (int(key) <= 57)) { 
+        inp = key - 48;
+        if (cursor == 0) {
+          // hour
+          if (inp <= 2) {
+            *hr = inp * 10;
+            cursor++;
+            drawInputFieldTime(*hr, *min, cursor);
+          }
+        }
+        else if (cursor == 1) {
+          // hour
+          if (*hr + inp <= 23) {
+            *hr += inp;
+            cursor++;
+            drawInputFieldTime(*hr, *min, cursor);
+          }
+        }
+        else if (cursor == 2) {
+          // minute
+          if (inp <= 5) {
+            *min = inp * 10;
+            cursor++;
+            drawInputFieldTime(*hr, *min, cursor);
+          }
+        }
+        else if (cursor == 3) {
+          // minute
+          if (*min + inp <= 59) {
+            *min += inp;
+            cursor = -1;
+            drawInputFieldTime(*hr, *min, cursor);
+          }
+        }
+      }
+    }
+
+    if (!getTouchPoint(&p))
+      continue;
+    btn = menu.processTSPoint(p);
+    if (btn == menuBtnOk) {
+      return true;
+    } else if (btn == menuBtnCancel) {
+      break;
+    }
+  }
+  
+  return false;
+}
+
+bool enterDate(int* day, int* month, int* yr)
+{
+  int cursor = 0;
+  uint inp;
+  char key = 0;
+  int btn;
+  
+  BtnBarMenu menu(&tft);
+  menu.init(btn_feedback);
+  int menuBtnOk = menu.add("OK");
+  int menuBtnCancel = menu.add("Cancel");
+  menu.draw();
+
+  drawInputFieldDate(*day, *month, *yr, cursor);
+  
+  TS_Point p;
+  while(1)
+  {
+    key = keypad.getKey();
+
+    if (key)
+    {
+      if ((int(key) >= 48) && (int(key) <= 57)) { 
+        inp = key - 48;
+        if (cursor == 0) {
+          // day
+          if (inp <= 3) {
+            *day = inp * 10;
+            cursor++;
+            drawInputFieldDate(*day, *month, *yr, cursor);
+          }
+        }
+        else if (cursor == 1) {
+          // day
+          if (*day + inp <= 31 && inp > 0) {
+            *day += inp;
+            cursor++;
+            drawInputFieldDate(*day, *month, *yr, cursor);
+          }
+        }
+        else if (cursor == 2) {
+          // month
+          if (inp <= 1) {
+            *month = inp * 10;
+            cursor++;
+            drawInputFieldDate(*day, *month, *yr, cursor);
+          }
+        }
+        else if (cursor == 3) {
+          // month
+          if (*month + inp <= 12 && inp > 0) {
+            *month += inp;
+            cursor++;
+            drawInputFieldDate(*day, *month, *yr, cursor);
+          }
+        }
+        else if (cursor == 4) {
+          // year
+          *yr += inp * 10;
+          cursor++;
+          drawInputFieldDate(*day, *month, *yr, cursor);
+        }
+        else if (cursor == 5) {
+          // year
+          if (*yr + inp <= 2099) {
+            *yr += inp;
+            cursor = -1;
+            drawInputFieldDate(*day, *month, *yr, cursor);
+          }
+        }
+      }
+    }
+
+    if (!getTouchPoint(&p))
+      continue;
+    btn = menu.processTSPoint(p);
+    if (btn == menuBtnOk) {
+      return true;
+    } else if (btn == menuBtnCancel) {
+      break;
+    }
+  }
+  
+  return false;
 }
 
 void getDisplValueExt(float v, uint digits, int resolution, disp_val_t* out, bool fixed)
