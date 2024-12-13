@@ -3,6 +3,7 @@
 #include "board.h"
 #include "displayhelp.h"
 #include "globals.h"
+#include "helper.h"
 #include "src/utils/btn_bar_menu.h"
 #include "src/utils/usbstorage.h"
 #include "sysmenu.h"
@@ -121,6 +122,9 @@ void sysMenuShow()
   {
     myusb.Task();
 
+    if (keypad.getKey() == 'S')
+      saveScreenshot(&tft);
+
     if (getTouchPoint(&p))
     {
       key = sysMenu.processTSPoint(p);
@@ -135,7 +139,9 @@ void sysMenuShow()
     if (displayUpdate >= 1000)
     {
       sysMenuUpdate();
+      osdMessage.show();
       tft.updateScreen();
+      osdMessage.clean();
       displayUpdate = 0;
     }
 

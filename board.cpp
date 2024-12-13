@@ -17,6 +17,7 @@ Generic_LM75 temperature;
 ILI9341_t3n tft = ILI9341_t3n(TFT_CS_PIN, TFT_DC_PIN, TFT_RST_PIN);
 DMAMEM uint16_t tft_frame_buffer[ILI9341_TFTWIDTH * ILI9341_TFTHEIGHT];
 XPT2046_Touchscreen ts(TS_CS_PIN, TS_IRQ_PIN);
+OSDMessage osdMessage(&tft);
 
 // Keypad
 const byte ROWS = 4;

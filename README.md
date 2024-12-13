@@ -51,6 +51,13 @@ Save screenshots to USB thump drive:
  - A simple voltmeter for debug purpose
  - use HPOT and LPOT inputs
 
+## System Menu
+
+![System Menu](docs/system_menu.bmp)
+
+ - View actual date, time, board temperature and USB drive connection state.
+ - Set date & time of RTC
+
 # Hardware
 
 ![Board](docs/Board%20Top%20View.png)

@@ -11,8 +11,7 @@
 #include "apps.h"
 #include <ili9341_t3n_font_Arial.h>
 #include "sysmenu.h"
-#include "src/utils/usbstorage.h"
-#include "src/utils/osdmessage.h"
+#include "helper.h"
 
 
 static const uint AMPLITUDE_PRESETS_NUM = 3;
@@ -131,8 +130,6 @@ typedef struct lcr_params_struct {
   float cp;   // parallel capacitance
   float lp;   // parallel inductance
 } lcr_params_t;
-
-OSDMessage osdMessage(&tft);
 
 void printCalData() {
   Serial.println("calOutA");
@@ -778,18 +775,6 @@ void lcrSetRangeMode()
   lcrDrawMenu();
 }
 
-void lcrSaveScreenshot()
-{
-  static const char* msgSuccess = "Saved screenshot.";
-  static const char* msgFail = "Failed to save screenshot!";
-  int state = usbSaveScreenshot(&tft);
-  if (state == 0) {
-    osdMessage.setMessage(msgSuccess);
-  } else {
-    osdMessage.setMessage(msgFail);
-  }
-}
-
 void lcrHandleButtons() {
   char key = keypad.getKey();
   if (!key)
@@ -811,7 +796,7 @@ void lcrHandleButtons() {
       lcrDrawMenu();
       break;
     case 'S':
-      lcrSaveScreenshot();
+      saveScreenshot(&tft);
       break;
     case 'L':
       boardSetPGAGainV(++boardSettings.gain_v % PGA_GAIN_NUM);

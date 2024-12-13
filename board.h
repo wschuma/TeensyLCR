@@ -8,6 +8,7 @@
 #include <Temperature_LM75_Derived.h>
 #include <Encoder.h>
 #include <Bounce.h>
+#include "src/utils/osdmessage.h"
 
 // define digital pins
 #define STATUS_LED_PIN  22
@@ -66,6 +67,7 @@ extern Generic_LM75 temperature;
 extern ILI9341_t3n tft;
 extern XPT2046_Touchscreen ts;
 //extern DMAMEM uint16_t tft_frame_buffer[];
+extern OSDMessage osdMessage;
 extern Keypad keypad;
 extern Bounce encButton;
 
