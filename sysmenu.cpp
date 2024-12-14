@@ -5,7 +5,6 @@
 #include "globals.h"
 #include "helper.h"
 #include "src/utils/btn_bar_menu.h"
-#include "src/utils/usbstorage.h"
 #include "sysmenu.h"
 
 BtnBarMenu sysMenu(&tft);
