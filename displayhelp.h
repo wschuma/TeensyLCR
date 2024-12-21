@@ -36,5 +36,6 @@ void drawPrimaryDisplay(disp_val_t* val);
 void drawSecondaryDisplay(disp_val_t* val);
 void drawPrimaryDisplay(String s);
 void drawSecondaryDisplay(String s);
+void printDigits(int digits);
 
 #endif

@@ -920,3 +920,12 @@ void drawSecondaryDisplay(String s)
   tft.setCursor(MAIN_DISPLAY_X, MAIN_DISPLAY_Y_SECONDARY + 1);
   tft.print(s);
 }
+
+// utility function for digital clock display: prints preceding colon and leading 0
+void printDigits(int digits)
+{
+  tft.print(":");
+  if(digits < 10)
+    tft.print('0');
+  tft.print(digits);
+}
