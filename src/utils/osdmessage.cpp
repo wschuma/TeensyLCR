@@ -9,21 +9,16 @@ OSDMessage::OSDMessage(ILI9341_t3n *display) {
 void OSDMessage::setMessage(const char* text) {
   static const uint MESSAGE_TIMEOUT = 3000;
   _text = text;
-  _state = MSG_DRAW;
+  _state = MSG_SHOW;
   _timeout = millis() + MESSAGE_TIMEOUT;
 }
 
-void OSDMessage::show(bool force) {
-  if (_state == MSG_NONE) {
-    return;
-  }
-  if (_state == MSG_DRAW || force) {
+bool OSDMessage::show() {
+  if (_state == MSG_SHOW) {
     draw();
-    _state = MSG_SHOW;
+    return true;
   }
-  if (millis() > _timeout) {
-    _state = MSG_CLEAR;
-  }
+  return false;
 }
 
 void OSDMessage::draw() {
@@ -39,7 +34,7 @@ void OSDMessage::draw() {
 }
 
 bool OSDMessage::clean() {
-  if (_state == MSG_CLEAR) {
+  if (_state == MSG_SHOW & millis() > _timeout) {
     _d->fillRect(10, 80, 300, 30, ILI9341_BLACK);
     _state = MSG_NONE;
     return true;

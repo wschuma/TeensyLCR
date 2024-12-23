@@ -922,6 +922,7 @@ void lcrApplication()
     {
       lcrDataAvailable = false;
       displayUpdate = 0;
+      osdMessage.clean();
       if (lcrSettings.displMode == 0)
         calc_lcr();
       else
@@ -929,7 +930,6 @@ void lcrApplication()
 
       osdMessage.show();
       tft.updateScreen();
-      osdMessage.clean();
     }
   }
 }
