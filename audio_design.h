@@ -5,7 +5,7 @@
 #include <Audio.h>
 
 
-typedef struct lcr_readings_struct {
+typedef struct ad_readings_struct {
   float v_rms;
   float i_rms;
   float v_mean;
@@ -21,11 +21,10 @@ typedef struct lcr_readings_struct {
   float mean4;
   float a1;
   float a2;
-} lcr_readings_t;
+} ad_readings_t;
 
-extern uint averaging;
-extern bool lcrDataAvailable;
-extern lcr_readings_t lcrReadings;
+extern bool adDataAvailable;
+extern ad_readings_t adReadings;
 
 void adInit();
 void adSetOutputFrequency(float frequency);
@@ -34,7 +33,10 @@ void adSetOutputOffset(float offset);
 void adResetSquarewavePhase();
 float adHeadroom(float peaklevel);
 void adResetReadings();
-void average_readings();
+void adAverageReadings();
+float adGetFrequency();
+uint adGetAveraging();
+void adSetAveraging(uint avg);
 
 
 #endif

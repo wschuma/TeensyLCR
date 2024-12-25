@@ -14,7 +14,7 @@ void dvmDisplay()
   
   tft.fillRect(0, 0, 320, tft.height() - 69, ILI9341_BLACK);
   
-  getDisplValue(lcrReadings.v_rms, 6, -4, &val);
+  getDisplValue(adReadings.v_rms, 6, -4, &val);
   val.unit = "V";
   drawPrimaryDisplay(&val);
   
@@ -50,10 +50,10 @@ void functionDvm()
   // loop
   while (1)
   {
-    average_readings();
-    if (displayUpdate >= DISPLAY_UPDATE_RATE_MIN && lcrDataAvailable)
+    adAverageReadings();
+    if (displayUpdate >= DISPLAY_UPDATE_RATE_MIN && adDataAvailable)
     {
-      lcrDataAvailable = false;
+      adDataAvailable = false;
       displayUpdate = 0;
       dvmDisplay();
     }

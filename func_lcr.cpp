@@ -205,8 +205,8 @@ bool lcrAutoRange(float z)
   static const float LCR_HEADROOM_RANGE_I = 16.0;  // dB
 
   bool active = false;
-  float v_headroom = adHeadroom(lcrReadings.v_peak);
-  float i_headroom = adHeadroom(lcrReadings.i_peak);
+  float v_headroom = adHeadroom(adReadings.v_peak);
+  float i_headroom = adHeadroom(adReadings.i_peak);
   float hdrExp = lcrHeadroomExp(lcrSettings.frequency);
   
   // check headroom
@@ -453,8 +453,8 @@ void lcrDrawMeasSetup()
 void calc_lcr() {
   static const float LCR_THRESHOLD_OPEN = 100e6; // Ohm
 
-  float impedance = lcrReadings.v_rms / lcrReadings.i_rms;
-  float phase = lcrReadings.phase;
+  float impedance = adReadings.v_rms / adReadings.i_rms;
+  float phase = adReadings.phase;
   disp_val_t val;
   
   // determain lcr meter range
@@ -465,8 +465,7 @@ void calc_lcr() {
     // started ranging
     rangingActive = true;
     forceRanging = false;
-    averaging = 1;
-    adResetReadings();
+    adSetAveraging(1);
     drawPrimaryDisplay(" -----");
     drawSecondaryDisplay(" -----");
     return;
@@ -481,7 +480,7 @@ void calc_lcr() {
   {
     // finished ranging
     rangingActive = false;
-    averaging = lcrSettings.averaging;
+    adSetAveraging(lcrSettings.averaging);
     lcrDrawMeasSetup();
     return;
   }
@@ -580,8 +579,8 @@ void calc_lcr() {
 }
 
 void calc_lcr2() {
-  float impedance = lcrReadings.v_rms / lcrReadings.i_rms;
-  float phase = lcrReadings.phase;
+  float impedance = adReadings.v_rms / adReadings.i_rms;
+  float phase = adReadings.phase;
   disp_val_t val;
   
   tft.fillRect(0, 0, 320, tft.height() - 69, ILI9341_BLACK);
@@ -601,8 +600,7 @@ void calc_lcr2() {
     // started ranging
     rangingActive = true;
     forceRanging = false;
-    averaging = 1;
-    adResetReadings();
+    adSetAveraging(1);
   }
   if (rangingActive && ranging)
   {
@@ -613,43 +611,43 @@ void calc_lcr2() {
   {
     // finished ranging
     rangingActive = false;
-    averaging = lcrSettings.averaging;
+    adSetAveraging(lcrSettings.averaging);
   }
 
   lcr_params_t params = lcrCalcParams(impedance, phase, lcrSettings.frequency);
 
   tft.print("h V= ");
-  tft.print(adHeadroom(lcrReadings.v_peak));
+  tft.print(adHeadroom(adReadings.v_peak));
   tft.print("dB I= ");
-  tft.print(adHeadroom(lcrReadings.i_peak));
+  tft.print(adHeadroom(adReadings.i_peak));
   tft.println("dB");
   
   tft.print("V rms= ");
-  tft.println(lcrReadings.v_rms, 6);
+  tft.println(adReadings.v_rms, 6);
   //tft.print("I rms= ");
-  //tft.println(sci(lcrReadings.i_rms, 6));
+  //tft.println(sci(adReadings.i_rms, 6));
   tft.print("V mean= ");
-  tft.println(sci(lcrReadings.v_mean, 6));
+  tft.println(sci(adReadings.v_mean, 6));
   tft.print("I mean= ");
-  tft.println(sci(lcrReadings.i_mean, 6));
+  tft.println(sci(adReadings.i_mean, 6));
   
   tft.print("Z= ");
   tft.println(sci(impedance, 6));
   tft.print("Phi= ");
   tft.print(phase / PI * 180, 3);
   tft.print(" ");
-  tft.println(lcrReadings.phase_raw / PI * 180, 3);
+  tft.println(adReadings.phase_raw / PI * 180, 3);
 
-  //tft.print(sci(lcrReadings.mean2, 3));
+  //tft.print(sci(adReadings.mean2, 3));
   //tft.print(" ");
-  //tft.println(sci(lcrReadings.mean4, 3));
-  //tft.print(sci(lcrReadings.mean1, 3));
+  //tft.println(sci(adReadings.mean4, 3));
+  //tft.print(sci(adReadings.mean1, 3));
   //tft.print(" ");
-  //tft.println(sci(lcrReadings.mean3, 3));
+  //tft.println(sci(adReadings.mean3, 3));
   
-  //tft.print(lcrReadings.a1 / PI * 180, 3);
+  //tft.print(adReadings.a1 / PI * 180, 3);
   //tft.print("   ");
-  //tft.println(lcrReadings.a2 / PI * 180, 3);
+  //tft.println(adReadings.a2 / PI * 180, 3);
   
   tft.print("Rs= ");
   tft.println(sci(params.rs, 6));
@@ -702,8 +700,7 @@ void lcrSetAveraging()
   if (ok)
   {
     lcrSettings.averaging = avg;
-    averaging = avg;
-    adResetReadings();
+    adSetAveraging(avg);
   }
   tft.fillScreen(ILI9341_BLACK);
   lcrDrawFuncIndicators();
@@ -736,7 +733,7 @@ void lcrSetFrequency(float f)
     adSetOutputFrequency(lcrSettings.frequency);
     adResetSquarewavePhase();
     forceRanging = true;
-    averaging = 1;
+    adSetAveraging(1);
   }
   activeMenu = APP_DEFAULT;
   tft.fillScreen(ILI9341_BLACK);
@@ -750,7 +747,7 @@ void lcrSetAmplitude()
   lcrSettings.amplitudePreset = ++lcrSettings.amplitudePreset % AMPLITUDE_PRESETS_NUM;
   adSetOutputAmplitude(amplitudePresets[lcrSettings.amplitudePreset] * sqrtf(2));
   forceRanging = true;
-  averaging = 1;
+  adSetAveraging(1);
   lcrDrawMeasSetup();
   lcrDrawMenu();
 }
@@ -871,7 +868,7 @@ bool lcrHandleTouch()
 
 void lcrApplySettings()
 {
-  averaging = lcrSettings.averaging;
+  adSetAveraging(lcrSettings.averaging);
   functionLabelSelection = functionLabels[lcrSettings.function];
   rangeModeLabelSelection = rangeModeLabels[lcrSettings.range_mode];
   displModeLabelSelection = displModeLabels[lcrSettings.displMode];
@@ -916,11 +913,11 @@ void lcrApplication()
     lcrHandleButtons();
     if (lcrHandleTouch())
       return;
-    average_readings();
+    adAverageReadings();
 
-    if (displayUpdate >= DISPLAY_UPDATE_RATE_MIN && lcrDataAvailable)
+    if (displayUpdate >= DISPLAY_UPDATE_RATE_MIN && adDataAvailable)
     {
-      lcrDataAvailable = false;
+      adDataAvailable = false;
       displayUpdate = 0;
       osdMessage.clean();
       if (lcrSettings.displMode == 0)

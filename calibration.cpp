@@ -19,10 +19,10 @@ void updateReadings()
 {
   while(1)
   {
-    average_readings();
-    if (lcrDataAvailable)
+    adAverageReadings();
+    if (adDataAvailable)
     {
-      lcrDataAvailable = false;
+      adDataAvailable = false;
       return;
     }
   }
@@ -45,7 +45,7 @@ void calSaveData()
 void functionCalib()
 {
   // setup
-  averaging = 256;
+  adSetAveraging(256);
   tft.useFrameBuffer(false);
   tft.fillScreen(ILI9341_BLACK);
   tft.setFont();
@@ -90,7 +90,7 @@ void functionCalib()
   tft.println("measure...");
   updateReadings();
   updateReadings();
-  calInA.gainFactor[boardSettings.gain_v] = vRef / lcrReadings.v_rms;
+  calInA.gainFactor[boardSettings.gain_v] = vRef / adReadings.v_rms;
   tft.println(calInA.gainFactor[boardSettings.gain_v], 6);
   
   
@@ -107,8 +107,8 @@ void functionCalib()
     updateReadings();
     updateReadings();
     tft.print("h V= ");
-    tft.println(adHeadroom(lcrReadings.v_peak));
-    calInA.gainFactor[boardSettings.gain_v] = vOut[preset] / lcrReadings.v_rms;
+    tft.println(adHeadroom(adReadings.v_peak));
+    calInA.gainFactor[boardSettings.gain_v] = vOut[preset] / adReadings.v_rms;
     tft.println(calInA.gainFactor[boardSettings.gain_v], 6);
   }
   tft.println("Short JP1.");
@@ -179,22 +179,22 @@ void functionCalib()
     }
     updateReadings();
     updateReadings();
-    current = lcrReadings.v_rms / calR;
+    current = adReadings.v_rms / calR;
     tft.print("I rms= ");
     tft.println(current, 6);
     tft.print("h V= ");
-    tft.print(adHeadroom(lcrReadings.v_peak));
+    tft.print(adHeadroom(adReadings.v_peak));
     tft.print("dB I= ");
-    tft.print(adHeadroom(lcrReadings.i_peak));
+    tft.print(adHeadroom(adReadings.i_peak));
     tft.println("dB");
     if (calSetups[preset].calRange)
     {
-      calInB.transmissionFactor[boardSettings.range] = current / lcrReadings.i_rms;
+      calInB.transmissionFactor[boardSettings.range] = current / adReadings.i_rms;
       tft.println(calInB.transmissionFactor[boardSettings.range], 6);
     }
     else
     {
-      calInB.gainFactor[boardSettings.gain_i] = current / lcrReadings.i_rms;
+      calInB.gainFactor[boardSettings.gain_i] = current / adReadings.i_rms;
       tft.println(calInB.gainFactor[boardSettings.gain_i], 6);
     }
     waitForUser();

@@ -52,7 +52,7 @@ AudioControlCS4272_192k  CS4272;         //xy=580,165
 static const uint AVG_BUFFER_LENGTH = 256;
 static const uint AVG_BUFFER_VALUES = 8;
 
-typedef struct ad_readings_struct_t {
+typedef struct ad_raw_readings_struct_t {
   float mean1;
   float mean2;
   float mean3;
@@ -61,10 +61,10 @@ typedef struct ad_readings_struct_t {
   float rms_i;
   float mean_v;
   float mean_i;
-} ad_readings_t;
+} ad_raw_readings_t;
 
 typedef union results_union_t {
-  ad_readings_t readings;
+  ad_raw_readings_t readings;
   float buffer[AVG_BUFFER_VALUES];
 } results_pk_t;
 
@@ -72,9 +72,10 @@ results_pk_t avgBuffer[AVG_BUFFER_LENGTH];
 uint avgBufferPos = 0;
 uint avgBufferFill = 0;
 
-uint averaging;
-lcr_readings_t lcrReadings;
-bool lcrDataAvailable = false;
+uint _averaging;
+ad_readings_t adReadings;
+bool adDataAvailable = false;
+float _frequency;
 
 void adInit() {
   AudioMemory(34);
@@ -99,6 +100,7 @@ void adSetOutputFrequency(float frequency) {
   squarewave.frequency(frequency);
   squarewave_90.frequency(frequency);
   adResetReadings();
+  _frequency = frequency;
 }
 
 /*
@@ -147,7 +149,7 @@ float adHeadroom(float peaklevel)
 void adResetReadings()
 {
   avgBufferFill = 0;
-  lcrDataAvailable = false;
+  adDataAvailable = false;
 }
 
 void calcMovingAvg(uint avg, float results[AVG_BUFFER_VALUES])
@@ -169,7 +171,7 @@ void calcMovingAvg(uint avg, float results[AVG_BUFFER_VALUES])
     results[idx] /= avg;
 }
 
-void average_readings() {
+void adAverageReadings() {
   results_pk_t results;
   if (mean1.available() && mean2.available() && mean3.available() && mean4.available() && analyzeRmsV.available() && analyzeRmsI.available()) {
     // fill buffer
@@ -189,42 +191,66 @@ void average_readings() {
     if (avgBufferFill < AVG_BUFFER_LENGTH)
       avgBufferFill++;
     
-    if (avgBufferFill >= averaging) {
+    if (avgBufferFill >= _averaging) {
       uint32_t start = micros();
-      calcMovingAvg(averaging, results.buffer);
-      lcrReadings.time = micros() - start;
+      calcMovingAvg(_averaging, results.buffer);
+      adReadings.time = micros() - start;
 
       // get readings
-      lcrReadings.v_peak = peakV.read();
-      lcrReadings.i_peak = peakI.read();
-      lcrReadings.v_rms = results.readings.rms_v * calInA.transmissionFactor * calInA.gainFactor[boardSettings.gain_v];
-      lcrReadings.i_rms = results.readings.rms_i * calInB.transmissionFactor[boardSettings.range] * calInB.gainFactor[boardSettings.gain_i];
-      lcrReadings.v_mean = results.readings.mean_v * calInA.transmissionFactor * calInA.gainFactor[boardSettings.gain_v];
-      lcrReadings.i_mean = results.readings.mean_i * calInB.transmissionFactor[boardSettings.range] * calInB.gainFactor[boardSettings.gain_i];
-      lcrReadings.a1 = atan2(results.readings.mean2, results.readings.mean1);
-      lcrReadings.a2 = atan2(results.readings.mean4, results.readings.mean3);
-      lcrReadings.phase_raw = lcrReadings.a1 - lcrReadings.a2;
-      lcrReadings.phase = lcrReadings.phase_raw;
-      lcrReadings.mean1 = results.readings.mean1;
-      lcrReadings.mean2 = results.readings.mean2;
-      lcrReadings.mean3 = results.readings.mean3;
-      lcrReadings.mean4 = results.readings.mean4;
+      adReadings.v_peak = peakV.read();
+      adReadings.i_peak = peakI.read();
+      adReadings.v_rms = results.readings.rms_v * calInA.transmissionFactor * calInA.gainFactor[boardSettings.gain_v];
+      adReadings.i_rms = results.readings.rms_i * calInB.transmissionFactor[boardSettings.range] * calInB.gainFactor[boardSettings.gain_i];
+      adReadings.v_mean = results.readings.mean_v * calInA.transmissionFactor * calInA.gainFactor[boardSettings.gain_v];
+      adReadings.i_mean = results.readings.mean_i * calInB.transmissionFactor[boardSettings.range] * calInB.gainFactor[boardSettings.gain_i];
+      adReadings.a1 = atan2(results.readings.mean2, results.readings.mean1);
+      adReadings.a2 = atan2(results.readings.mean4, results.readings.mean3);
+      adReadings.phase_raw = adReadings.a1 - adReadings.a2;
+      adReadings.phase = adReadings.phase_raw;
+      adReadings.mean1 = results.readings.mean1;
+      adReadings.mean2 = results.readings.mean2;
+      adReadings.mean3 = results.readings.mean3;
+      adReadings.mean4 = results.readings.mean4;
       
       // cap phase to +-90°
-      if (-lcrReadings.phase > (M_PI + M_PI_2)) {
-        lcrReadings.phase = M_PI + M_PI - lcrReadings.phase;
+      if (-adReadings.phase > (M_PI + M_PI_2)) {
+        adReadings.phase = M_PI + M_PI - adReadings.phase;
       }
-      else if (-lcrReadings.phase > M_PI_2) {
-        lcrReadings.phase = -M_PI - lcrReadings.phase;
+      else if (-adReadings.phase > M_PI_2) {
+        adReadings.phase = -M_PI - adReadings.phase;
       }
-      else if (lcrReadings.phase > (M_PI + M_PI_2)) {
-        lcrReadings.phase = -M_PI - M_PI + lcrReadings.phase;
+      else if (adReadings.phase > (M_PI + M_PI_2)) {
+        adReadings.phase = -M_PI - M_PI + adReadings.phase;
       }
-      else if (lcrReadings.phase > M_PI_2) {
-        lcrReadings.phase = M_PI - lcrReadings.phase;
+      else if (adReadings.phase > M_PI_2) {
+        adReadings.phase = M_PI - adReadings.phase;
       }
 
-      lcrDataAvailable = true;
+      adDataAvailable = true;
     }
   }
+}
+
+/*
+ * Returns the currently used output frequency.
+ */
+float adGetFrequency() {
+  return _frequency;
+}
+
+/*
+ * Returns the currently used averaging value.
+ */
+uint adGetAveraging()
+{
+  return _averaging;
+}
+
+/*
+ * Set averaging value for audio readings.
+ */
+void adSetAveraging(uint avg)
+{
+  _averaging = avg;
+  adResetReadings();
 }
