@@ -1,5 +1,6 @@
 #include "func_lcr.h"
 #include <Arduino.h>
+#include "autorange.h"
 #include "board.h"
 #include "settings.h"
 #include "audio_design.h"
@@ -68,6 +69,7 @@ static const uint lcr_func_presets[LCR_FUNC_NUM] = {
   LCR_FUNC_Z_Q,
   LCR_FUNC_G_B
 };
+
 typedef struct lcr_settings_struct {
   float frequency;
   uint8_t amplitudePreset;
@@ -88,7 +90,6 @@ lcr_settings_t lcrSettings = {
   .averaging = 32,
 };
 
-bool rangingActive = false;
 bool forceRanging = false;
 
 // Menu definition
@@ -182,144 +183,6 @@ lcr_params_t lcrCalcParams(float z, float phi, float f) {
   results.cp = results.cs / (1 + results.d * results.d);
 
   return results;
-}
-
-/*
- * Calc headroom expansion to compensate for codec attenuation > 40kHz
- */
-float lcrHeadroomExp(float f)
-{
-  float hdr = 0;
-  if (f > 40000.0)
-  {
-    hdr = (f - 40000.0) * 1.6e-4;
-  }
-  return hdr;
-}
-
-bool lcrAutoRange(float z)
-{
-  static const float LCR_MINIMUM_HEADROOM_V = 1.0; // dB
-  static const float LCR_MINIMUM_HEADROOM_I = 1.0; // dB
-  static const float LCR_HEADROOM_RANGE_V = 16.0;  // dB
-  static const float LCR_HEADROOM_RANGE_I = 16.0;  // dB
-
-  bool active = false;
-  float v_headroom = adHeadroom(adReadings.v_peak);
-  float i_headroom = adHeadroom(adReadings.i_peak);
-  float hdrExp = lcrHeadroomExp(lcrSettings.frequency);
-  
-  // check headroom
-  if (v_headroom < (LCR_MINIMUM_HEADROOM_V + hdrExp) && boardSettings.gain_v > 0)
-  {
-    // reduce voltage gain
-    boardSetPGAGainV(--boardSettings.gain_v);
-    active = true;
-  }
-  else if (v_headroom > (LCR_HEADROOM_RANGE_V + hdrExp) && boardSettings.gain_v < 3)
-  {
-    // increase voltage gain
-    boardSetPGAGainV(++boardSettings.gain_v);
-    active = true;
-  }
-  if (i_headroom < (LCR_MINIMUM_HEADROOM_I + hdrExp) && boardSettings.gain_i > 0)
-  {
-    // reduce current gain
-    boardSetPGAGainI(--boardSettings.gain_i);
-    active = true;
-  }
-  else if (i_headroom > (LCR_HEADROOM_RANGE_I + hdrExp) && boardSettings.gain_i < 3)
-  {
-    // increase current gain
-    boardSetPGAGainI(++boardSettings.gain_i);
-    active = true;
-  }
-
-  if (active)
-    return true;
-  
-  if (lcrSettings.range_mode)
-    return false;
-  
-  // check range with hysteresis
-  if (z < 450)
-  {
-    if (boardSettings.range != 0)
-    {
-      boardSetLCRRange(0);
-      return true;
-    }
-    else
-      return false;
-  }
-  else if (z < 550)
-  {
-    if (boardSettings.range <= 1)
-      return false;
-    else
-    {
-      boardSetLCRRange(0);
-      return true;
-    }
-  }
-  else if (z < 4500)
-  {
-    if (boardSettings.range != 1)
-    {
-      boardSetLCRRange(1);
-      return true;
-    }
-    else
-      return false;
-  }
-  else if (z < 5500)
-  {
-    if(boardSettings.range == 1 || boardSettings.range == 2)
-      return false;
-    else
-    {
-      boardSetLCRRange(1);
-      return true;
-    }
-  }
-  else if (z < 45000)
-  {
-    if (boardSettings.range != 2)
-    {
-      boardSetLCRRange(2);
-      return true;
-    }
-    else
-      return false;
-  }
-  else if (z < 55000)
-  {
-    if (boardSettings.range >= 2)
-      return false;
-    else
-    {
-      boardSetLCRRange(2);
-      return true;
-    }
-  }
-  else
-    if (lcrSettings.frequency > 11000)
-    {
-      if (boardSettings.range != 2)
-      {
-        boardSetLCRRange(2);
-        return true;
-      }
-    }
-    else
-    {
-      if (boardSettings.range != 3)
-      {
-        boardSetLCRRange(3);
-        return true;
-      }
-    }
-  return false;
 }
 
 void lcrDrawFuncIndicators()
@@ -453,37 +316,33 @@ void lcrDrawMeasSetup()
 void calc_lcr() {
   static const float LCR_THRESHOLD_OPEN = 100e6; // Ohm
 
+  // determain lcr meter range
+  bool hold = lcrSettings.range_mode == 1;
+  RangingState state = autoRange(hold, forceRanging);
+  switch (state) {
+    case (RangingState::Started):
+      // ranging started
+      forceRanging = false;
+      drawPrimaryDisplay(" -----");
+      drawSecondaryDisplay(" -----");
+      return;
+    case (RangingState::Active):
+      // ranging is active, readings are not valid yet
+      return;
+    case (RangingState::Finished):
+      // finished ranging, restore averaging
+      adSetAveraging(lcrSettings.averaging);
+      lcrDrawMeasSetup();
+      return;
+    default:
+      // active range is ok, show results
+      break;
+  }
+
   float impedance = adReadings.v_rms / adReadings.i_rms;
   float phase = adReadings.phase;
   disp_val_t val;
   
-  // determain lcr meter range
-  bool ranging = lcrAutoRange(impedance);
-
-  if (forceRanging || (!rangingActive && ranging))
-  {
-    // started ranging
-    rangingActive = true;
-    forceRanging = false;
-    adSetAveraging(1);
-    drawPrimaryDisplay(" -----");
-    drawSecondaryDisplay(" -----");
-    return;
-  }
-  if (rangingActive && ranging)
-  {
-    // ranging is active, readings are not valid yet.
-    adResetReadings();
-    return;
-  }
-  if (rangingActive && !ranging)
-  {
-    // finished ranging
-    rangingActive = false;
-    adSetAveraging(lcrSettings.averaging);
-    lcrDrawMeasSetup();
-    return;
-  }
 
   lcr_params_t params = lcrCalcParams(impedance, phase, lcrSettings.frequency);
 
@@ -579,10 +438,6 @@ void calc_lcr() {
 }
 
 void calc_lcr2() {
-  float impedance = adReadings.v_rms / adReadings.i_rms;
-  float phase = adReadings.phase;
-  disp_val_t val;
-  
   tft.fillRect(0, 0, 320, tft.height() - 69, ILI9341_BLACK);
   tft.setFont();
   tft.setTextSize(2);
@@ -591,29 +446,25 @@ void calc_lcr2() {
   tft.println("[ DEBUG DISPLAY ]");
 
   // determain lcr meter range
-  bool ranging = false;
-  if (lcrSettings.range_mode == 0)
-    ranging = lcrAutoRange(impedance);
-
-  if (forceRanging || (!rangingActive && ranging))
-  {
-    // started ranging
-    rangingActive = true;
-    forceRanging = false;
-    adSetAveraging(1);
-  }
-  if (rangingActive && ranging)
-  {
-    // ranging is active, readings are not valid yet.
-    adResetReadings();
-  }
-  if (rangingActive && !ranging)
-  {
-    // finished ranging
-    rangingActive = false;
-    adSetAveraging(lcrSettings.averaging);
+  bool hold = lcrSettings.range_mode == 1;
+  RangingState state = autoRange(hold, forceRanging);
+  switch (state) {
+    case (RangingState::Started):
+      // ranging started
+      forceRanging = false;
+      break;
+    case (RangingState::Finished):
+      // finished ranging, restore averaging
+      adSetAveraging(lcrSettings.averaging);
+      break;
+    default:
+      // active range is ok, show results
+      break;
   }
 
+  float impedance = adReadings.v_rms / adReadings.i_rms;
+  float phase = adReadings.phase;
+  disp_val_t val;
   lcr_params_t params = lcrCalcParams(impedance, phase, lcrSettings.frequency);
 
   tft.print("h V= ");
@@ -673,7 +524,7 @@ void calc_lcr2() {
   tft.print(" R:");
   tft.print(boardSettings.range);
 
-  if (rangingActive)
+  if (state == RangingState::Active)
     tft.println(" ranging");
 }
 
