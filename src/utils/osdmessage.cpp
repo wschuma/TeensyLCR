@@ -6,15 +6,22 @@ OSDMessage::OSDMessage(ILI9341_t3n *display) {
   _d = display;
 };
 
+/*
+ * Set the message to be displayed.
+ */
 void OSDMessage::setMessage(const char* text) {
   static const uint MESSAGE_TIMEOUT = 3000;
   _text = text;
-  _state = MSG_SHOW;
+  _state = OSDState::Show;
   _timeout = millis() + MESSAGE_TIMEOUT;
 }
 
+/*
+ * If set by `setMessage`, draws the message to screen.
+ * Needs to be called before `updateScreen()`.
+ */
 bool OSDMessage::show() {
-  if (_state == MSG_SHOW) {
+  if (_state == OSDState::Show) {
     draw();
     return true;
   }
@@ -33,11 +40,22 @@ void OSDMessage::draw() {
   _d->print(_text);
 }
 
+/*
+ * Cleans the message area after timeout. Returns true in this case, otherwise false.
+ * Needs to be called after `updateScreen()` or before drawing something to screen.
+ */
 bool OSDMessage::clean() {
-  if (_state == MSG_SHOW & millis() > _timeout) {
+  if (_state == OSDState::Show && millis() > _timeout) {
     _d->fillRect(10, 80, 300, 30, ILI9341_BLACK);
-    _state = MSG_NONE;
+    _state = OSDState::None;
     return true;
   }
   return false;
+}
+
+/*
+ * Clear the OSD message. `show()` no longer draws messages.
+ */
+void OSDMessage::clear() {
+  _state = OSDState::None;
 }

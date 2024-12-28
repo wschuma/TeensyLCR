@@ -6,21 +6,22 @@
 
 class OSDMessage {
 public:
-	OSDMessage(ILI9341_t3n* Display);
+  OSDMessage(ILI9341_t3n* Display);
   void setMessage(const char* text);
   bool show();
   bool clean();
+  void clear();
 
 private:
   void draw();
-  enum osd_state
+  enum class OSDState
   {
-    MSG_NONE,
-    MSG_SHOW,
+    None,
+    Show,
   };
   ILI9341_t3n* _d;
   const char* _text;
-  osd_state _state = MSG_NONE;
+  OSDState _state = OSDState::None;
   uint32_t _timeout;
 };
 
