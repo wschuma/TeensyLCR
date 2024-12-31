@@ -539,6 +539,14 @@ void lcrDrawMenu()
   tft.updateScreen();
 }
 
+void lcrResetScreen()
+{
+  tft.fillScreen(ILI9341_BLACK);
+  lcrDrawFuncIndicators();
+  lcrDrawMeasSetup();
+  lcrDrawMenu();
+}
+
 void lcrSetAveraging()
 {
   tft.fillScreen(ILI9341_BLACK);
@@ -553,20 +561,14 @@ void lcrSetAveraging()
     lcrSettings.averaging = avg;
     adSetAveraging(avg);
   }
-  tft.fillScreen(ILI9341_BLACK);
-  lcrDrawFuncIndicators();
-  lcrDrawMeasSetup();
-  lcrDrawMenu();
+  lcrResetScreen();
 }
 
 void lcr_select_func()
 {
   lcrSettings.function = get_list_entry(functionLabels, LCR_FUNC_NUM, lcrSettings.function);
   functionLabelSelection = functionLabels[lcrSettings.function];
-  tft.fillScreen(ILI9341_BLACK);
-  lcrDrawMeasSetup();
-  lcrDrawFuncIndicators();
-  lcrDrawMenu();
+  lcrResetScreen();
 }
 
 void lcrSetFrequency(float f)
@@ -587,10 +589,7 @@ void lcrSetFrequency(float f)
     adSetAveraging(1);
   }
   activeMenu = APP_DEFAULT;
-  tft.fillScreen(ILI9341_BLACK);
-  lcrDrawMeasSetup();
-  lcrDrawFuncIndicators();
-  lcrDrawMenu();
+  lcrResetScreen();
 }
 
 void lcrSetAmplitude()
@@ -638,10 +637,7 @@ void lcrHandleButtons() {
       break;
     case '3':
       sysMenuShow();
-      tft.fillScreen(ILI9341_BLACK);
-      lcrDrawFuncIndicators();
-      lcrDrawMeasSetup();
-      lcrDrawMenu();
+      lcrResetScreen();
       break;
     case 'S':
       saveScreenshot(&tft);
@@ -752,11 +748,7 @@ void lcrApplication()
   lcrmenuBtnF10k = lcrSetFreqMenu.add("10kHz");
   lcrmenuBtnFman = lcrSetFreqMenu.add("Manuell");
 
-
-  tft.fillScreen(ILI9341_BLACK);
-  lcrDrawFuncIndicators();
-  lcrDrawMeasSetup();
-  lcrDrawMenu();
+  lcrResetScreen();
   
   // loop
   while (1)
