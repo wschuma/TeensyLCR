@@ -929,3 +929,44 @@ void printDigits(int digits)
     tft.print('0');
   tft.print(digits);
 }
+
+/*
+ * Print date and time to tft display (format YYYY-M-d hh:mm:ss).
+ */
+void printDateTime(time_t time)
+{
+  tft.print(year(time));
+  tft.print('-');
+  tft.print(month(time));
+  tft.print('-');
+  tft.print(day(time));
+  tft.print(' ');
+  tft.print(hour(time));
+  printDigits(minute(time));
+  printDigits(second(time));
+}
+
+/*
+ * Show onscreen message and a menu with OK button.
+ */
+void showMessage(const char *msg)
+{
+  BtnBarMenu menu(&tft);
+  menu.init(btn_feedback);
+  int menuBtnOk = menu.add("OK");
+  menu.draw();
+
+  osdMessage.setMessage(msg);
+  osdMessage.show();
+
+  tft.updateScreen();
+  
+  TS_Point p;
+  while(1)
+  {
+    if (!getTouchPoint(&p))
+      continue;
+    if (menu.processTSPoint(p) == menuBtnOk)
+      return;
+  }
+}

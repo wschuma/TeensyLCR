@@ -2,8 +2,9 @@
 #define displayhelp_h
 
 #include <Arduino.h>
-#include "XPT2046_Touchscreen.h"
+#include <TimeLib.h>
 #include "board.h"
+#include "XPT2046_Touchscreen.h"
 
 static const uint MAIN_DISPLAY_X = 31;
 static const uint MAIN_DISPLAY_Y_PRIMARY = 3;
@@ -37,5 +38,7 @@ void drawSecondaryDisplay(disp_val_t* val);
 void drawPrimaryDisplay(String s);
 void drawSecondaryDisplay(String s);
 void printDigits(int digits);
+void printDateTime(time_t time);
+void showMessage(const char *msg);
 
 #endif

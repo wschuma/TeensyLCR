@@ -2,10 +2,10 @@
 #include <Arduino.h>
 #include "autorange.h"
 #include "board.h"
+#include "correction.h"
 #include "settings.h"
 #include "audio_design.h"
 #include "MathHelpers.h"
-#include "cmplx_helper.h"
 #include "globals.h"
 #include "displayhelp.h"
 #include "src/utils/btn_bar_menu.h"
@@ -94,7 +94,7 @@ bool forceRanging = false;
 
 // Menu definition
 BtnBarMenu lcrMenu(&tft);
-int lcrmenuBtnFreq, lcrmenuBtnLevel, lcrmenuBtnDisplMode, lcrmenuBtnRangeMode, lcrmenuBtnFunc, lcrmenuBtnSetAvg;
+int lcrmenuBtnFreq, lcrmenuBtnLevel, lcrmenuBtnDisplMode, lcrmenuBtnRangeMode, lcrmenuBtnFunc, lcrmenuBtnSetAvg, lcrmenuBtnCorr;
 BtnBarMenu lcrSetFreqMenu(&tft);
 int lcrmenuBtnF100, lcrmenuBtnF1k, lcrmenuBtnF10k, lcrmenuBtnFman;
 
@@ -114,6 +114,12 @@ const char *displModeLabelSelection;
 
 const char *rangeModeLabels[] = {"Auto", "Hold"};
 const char *rangeModeLabelSelection;
+
+const char *offOnLabels[] = {"OFF", "ON"};
+const char *corrLabelSelection;
+bool applyCorrection = false;
+
+char avgStr[6];
 
 typedef struct lcr_params_struct {
   float phi;  // phase angle of impedance
@@ -151,14 +157,6 @@ void printCalData() {
   Serial.println(sci(calInB.gainFactor[1], 6));
   Serial.println(sci(calInB.gainFactor[2], 6));
   Serial.println(sci(calInB.gainFactor[3], 6));
-}
-
-cmplx_versor_t lcrCorrection(cmplx_versor_t zm, cmplx_versor_t zo) {
-  // Zm = Zo || Zx
-  // Zx = Zo * Zm / (Zo - Zm)
-  cmplx_versor_t tmp1 = cmplxMultiplyVersor(zo, zm);
-  cmplx_versor_t tmp2 = cmplxSubstractVersor(zo, zm);
-  return cmplxDevideVersor(tmp1, tmp2);
 }
 
 lcr_params_t lcrCalcParams(float z, float phi, float f) {
@@ -263,6 +261,19 @@ void lcrDrawFuncIndicators()
   }
 }
 
+void lcrUpdateCorrState()
+{
+  if (corr_data.f == lcrSettings.frequency && corr_data.apply &&
+      (corr_data.z0_time > 0 || corr_data.zs_time > 0))
+  {
+    corrLabelSelection = offOnLabels[1];
+    applyCorrection = true;
+  } else {
+    corrLabelSelection = offOnLabels[0];
+    applyCorrection = false;
+  }
+}
+
 void lcrDrawMeasSetup()
 {
   // skip if debug display
@@ -285,7 +296,7 @@ void lcrDrawMeasSetup()
   tft.print("RANGE:");
   //tft.print("FUNC:");
   tft.setCursor(161, MEAS_SETUP_LINE2_Y);
-  tft.print("AVG:");
+  tft.print("CORR:");
 
   // draw values
   tft.setTextColor(ILI9341_WHITE);
@@ -310,7 +321,7 @@ void lcrDrawMeasSetup()
   tft.print(rangeModeLabels[lcrSettings.range_mode]);
 
   tft.setCursor(244, MEAS_SETUP_LINE2_Y);
-  tft.print(lcrSettings.averaging);
+  tft.print(corrLabelSelection);
 }
 
 void calc_lcr() {
@@ -343,6 +354,8 @@ void calc_lcr() {
   float phase = adReadings.phase;
   disp_val_t val;
   
+  if (applyCorrection)
+    corrApply(&impedance, &phase);
 
   lcr_params_t params = lcrCalcParams(impedance, phase, lcrSettings.frequency);
 
@@ -465,6 +478,10 @@ void calc_lcr2() {
   float impedance = adReadings.v_rms / adReadings.i_rms;
   float phase = adReadings.phase;
   disp_val_t val;
+  
+  if (applyCorrection)
+    corrApply(&impedance, &phase);
+
   lcr_params_t params = lcrCalcParams(impedance, phase, lcrSettings.frequency);
 
   tft.print("h V= ");
@@ -536,7 +553,10 @@ void lcrDrawMenu()
     appSelectMenu.draw();
   else if (activeMenu == LCR_SET_FREQUENCY)
     lcrSetFreqMenu.draw();
+  
+  osdMessage.show();
   tft.updateScreen();
+  osdMessage.clean();
 }
 
 void lcrResetScreen()
@@ -560,6 +580,7 @@ void lcrSetAveraging()
   {
     lcrSettings.averaging = avg;
     adSetAveraging(avg);
+    sprintf(avgStr, "%i", avg);
   }
   lcrResetScreen();
 }
@@ -587,6 +608,7 @@ void lcrSetFrequency(float f)
     adResetSquarewavePhase();
     forceRanging = true;
     adSetAveraging(1);
+    lcrUpdateCorrState();
   }
   activeMenu = APP_DEFAULT;
   lcrResetScreen();
@@ -620,6 +642,30 @@ void lcrSetRangeMode()
   rangeModeLabelSelection = rangeModeLabels[lcrSettings.range_mode];
   lcrDrawMeasSetup();
   lcrDrawMenu();
+}
+
+void lcrApplySettings()
+{
+  adSetAveraging(lcrSettings.averaging);
+  sprintf(avgStr, "%i", lcrSettings.averaging);
+  functionLabelSelection = functionLabels[lcrSettings.function];
+  rangeModeLabelSelection = rangeModeLabels[lcrSettings.range_mode];
+  displModeLabelSelection = displModeLabels[lcrSettings.displMode];
+  lcrUpdateCorrState();
+
+  adSetOutputAmplitude(amplitudePresets[lcrSettings.amplitudePreset] * sqrtf(2));
+  adSetOutputOffset(0);
+
+  adSetOutputFrequency(lcrSettings.frequency);
+  adResetSquarewavePhase();
+}
+
+void lcrCorrectionMenu()
+{
+  correctionMenu();
+  lcrSettings.range_mode = 0;
+  lcrApplySettings();
+  lcrResetScreen();
 }
 
 void lcrHandleButtons() {
@@ -688,6 +734,8 @@ bool lcrHandleTouch()
       lcrSetRangeMode();
     else if (key == lcrmenuBtnSetAvg)
       lcrSetAveraging();
+    else if (key == lcrmenuBtnCorr)
+      lcrCorrectionMenu();
   }
   else if (activeMenu == SELECT_FUNCTION) {
     key = appSelectMenu.processTSPoint(p);
@@ -713,25 +761,12 @@ bool lcrHandleTouch()
   return false;
 }
 
-void lcrApplySettings()
-{
-  adSetAveraging(lcrSettings.averaging);
-  functionLabelSelection = functionLabels[lcrSettings.function];
-  rangeModeLabelSelection = rangeModeLabels[lcrSettings.range_mode];
-  displModeLabelSelection = displModeLabels[lcrSettings.displMode];
-
-  adSetOutputAmplitude(amplitudePresets[lcrSettings.amplitudePreset] * sqrtf(2));
-  adSetOutputOffset(0);
-
-  adSetOutputFrequency(lcrSettings.frequency);
-  adResetSquarewavePhase();
-}
-
 void lcrApplication()
 {
   // setup
   static const uint DISPLAY_UPDATE_RATE_MIN = 200;  // ms
   static elapsedMillis displayUpdate = 0;
+  const char *avgStrPtr = &avgStr[0];
   lcrApplySettings();
   
   lcrMenu.init(btn_feedback, "LCR Menu");
@@ -739,7 +774,8 @@ void lcrApplication()
   lcrmenuBtnLevel = lcrMenu.add("Level");
   lcrmenuBtnFunc = lcrMenu.add("Function", &functionLabelSelection);
   lcrmenuBtnRangeMode = lcrMenu.add("Range", &rangeModeLabelSelection);
-  lcrmenuBtnSetAvg = lcrMenu.add("Avg.");
+  lcrmenuBtnCorr = lcrMenu.add("Corr.");
+  lcrmenuBtnSetAvg = lcrMenu.add("Avg.", &avgStrPtr);
   lcrmenuBtnDisplMode = lcrMenu.add("Display", &displModeLabelSelection);
 
   lcrSetFreqMenu.init(btn_feedback, "Set Frequency");
