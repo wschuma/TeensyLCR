@@ -94,9 +94,7 @@ bool forceRanging = false;
 
 // Menu definition
 BtnBarMenu lcrMenu(&tft);
-int lcrmenuBtnFreq, lcrmenuBtnLevel, lcrmenuBtnDisplMode, lcrmenuBtnRangeMode, lcrmenuBtnFunc, lcrmenuBtnSetAvg, lcrmenuBtnCorr;
 BtnBarMenu lcrSetFreqMenu(&tft);
-int lcrmenuBtnF100, lcrmenuBtnF1k, lcrmenuBtnF10k, lcrmenuBtnFman;
 
 const char *functionLabels[LCR_FUNC_NUM] = {
   "Cs-Rs", "Cs-D", "Cp-Rp", "Cp-D",
@@ -614,6 +612,32 @@ void lcrSetFrequency(float f)
   lcrResetScreen();
 }
 
+void lcrShowSelectFreqMenu()
+{
+  activeMenu = LCR_SET_FREQUENCY;
+  lcrDrawMenu();
+}
+
+void lcrSetFreq100()
+{
+  lcrSetFrequency(100.0);
+}
+
+void lcrSetFreq1k()
+{
+  lcrSetFrequency(1000.0);
+}
+
+void lcrSetFreq10k()
+{
+  lcrSetFrequency(10000.0);
+}
+
+void lcrSetFreqMan()
+{
+  lcrSetFrequency(0);
+}
+
 void lcrSetAmplitude()
 {
   lcrSettings.amplitudePreset = ++lcrSettings.amplitudePreset % AMPLITUDE_PRESETS_NUM;
@@ -716,26 +740,8 @@ bool lcrHandleTouch()
     return false;
     
   if (activeMenu == APP_DEFAULT) {
-    key = lcrMenu.processTSPoint(p);
-    if (key == BTN_BAR_MENU_EVENT_IDLE)
-      return false;
-    if (key == lcrmenuBtnFreq) {
-      activeMenu = LCR_SET_FREQUENCY;
-      lcrDrawMenu();
-      return false;
-    }
-    else if (key == lcrmenuBtnLevel)
-      lcrSetAmplitude();
-    else if (key == lcrmenuBtnFunc)
-      lcr_select_func();
-    else if (key == lcrmenuBtnDisplMode)
-      lcrSetDisplayMode();
-    else if (key == lcrmenuBtnRangeMode)
-      lcrSetRangeMode();
-    else if (key == lcrmenuBtnSetAvg)
-      lcrSetAveraging();
-    else if (key == lcrmenuBtnCorr)
-      lcrCorrectionMenu();
+    lcrMenu.processTSPoint(p);
+    return false;
   }
   else if (activeMenu == SELECT_FUNCTION) {
     key = appSelectMenu.processTSPoint(p);
@@ -745,18 +751,7 @@ bool lcrHandleTouch()
     }
   }
   else if (activeMenu == LCR_SET_FREQUENCY) {
-    key = lcrSetFreqMenu.processTSPoint(p);
-    if (key != BTN_BAR_MENU_EVENT_IDLE) {
-      if (key == lcrmenuBtnF100)
-        lcrSetFrequency(100.0);
-      else if (key == lcrmenuBtnF1k)
-        lcrSetFrequency(1000.0);
-      else if (key == lcrmenuBtnF10k)
-        lcrSetFrequency(10000.0);
-      else if (key == lcrmenuBtnFman) {
-        lcrSetFrequency(0);
-      }
-    }
+    lcrSetFreqMenu.processTSPoint(p);
   }
   return false;
 }
@@ -770,19 +765,19 @@ void lcrApplication()
   lcrApplySettings();
   
   lcrMenu.init(btn_feedback, "LCR Menu");
-  lcrmenuBtnFreq = lcrMenu.add("Freq.");
-  lcrmenuBtnLevel = lcrMenu.add("Level");
-  lcrmenuBtnFunc = lcrMenu.add("Function", &functionLabelSelection);
-  lcrmenuBtnRangeMode = lcrMenu.add("Range", &rangeModeLabelSelection);
-  lcrmenuBtnCorr = lcrMenu.add("Corr.");
-  lcrmenuBtnSetAvg = lcrMenu.add("Avg.", &avgStrPtr);
-  lcrmenuBtnDisplMode = lcrMenu.add("Display", &displModeLabelSelection);
+  lcrMenu.add("Freq.", lcrShowSelectFreqMenu);
+  lcrMenu.add("Level", lcrSetAmplitude);
+  lcrMenu.add("Function", &functionLabelSelection, lcr_select_func);
+  lcrMenu.add("Range", &rangeModeLabelSelection, lcrSetRangeMode);
+  lcrMenu.add("Corr.", lcrCorrectionMenu);
+  lcrMenu.add("Avg.", &avgStrPtr, lcrSetAveraging);
+  lcrMenu.add("Display", &displModeLabelSelection, lcrSetDisplayMode);
 
   lcrSetFreqMenu.init(btn_feedback, "Set Frequency");
-  lcrmenuBtnF100 = lcrSetFreqMenu.add("100Hz");
-  lcrmenuBtnF1k = lcrSetFreqMenu.add("1kHz");
-  lcrmenuBtnF10k = lcrSetFreqMenu.add("10kHz");
-  lcrmenuBtnFman = lcrSetFreqMenu.add("Manuell");
+  lcrSetFreqMenu.add("100Hz", lcrSetFreq100);
+  lcrSetFreqMenu.add("1kHz", lcrSetFreq1k);
+  lcrSetFreqMenu.add("10kHz", lcrSetFreq10k);
+  lcrSetFreqMenu.add("Manuell", lcrSetFreqMan);
 
   lcrResetScreen();
   

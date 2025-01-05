@@ -168,8 +168,6 @@ void printTemp() {
 void generatorApplication()
 {
   // setup
-  int menuBtnFreq, menuBtnAmpl, menuBtnOffset, menuBtnWave;
-  
   outputOn = false;
   adSetOutputAmplitude(0);
   adSetOutputOffset(0);
@@ -178,10 +176,10 @@ void generatorApplication()
   waveOpt = waves[0];
   
   genMenu.init(btn_feedback, "FG Menu");
-  menuBtnFreq = genMenu.add("Freq.");
-  menuBtnAmpl = genMenu.add("Ampl.");
-  menuBtnOffset = genMenu.add("Offset");
-  menuBtnWave = genMenu.add("Wavef.", &waveOpt);
+  genMenu.add("Freq.", setFrequency);
+  genMenu.add("Ampl.", setAmplitude);
+  genMenu.add("Offset", setOffset);
+  genMenu.add("Wavef.", &waveOpt, setWaveform);
   
   displayValues();
   
@@ -225,18 +223,7 @@ void generatorApplication()
       continue;
       
     if (activeMenu == APP_DEFAULT) {
-      //key = btn_bar_menu_process_key(&gen_menu, key);
-      key = genMenu.processTSPoint(p);
-      if (key == menuBtnFreq)
-        setFrequency();
-      else if (key == menuBtnAmpl)
-        setAmplitude();
-      else if (key == menuBtnOffset)
-        setOffset();
-      else if (key == menuBtnWave)
-        setWaveform();
-      else
-        tft.updateScreen();
+      genMenu.processTSPoint(p);
     }
     else if (activeMenu == SELECT_FUNCTION) {
       key = appSelectMenu.processTSPoint(p);

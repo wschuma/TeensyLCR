@@ -103,8 +103,8 @@ void sysMenuShow()
 
   sysMenu.init(btn_feedback, "System Menu");
   int sysMenuBtnExit = sysMenu.add("Close");
-  int sysMenuBtnSetTime = sysMenu.add("Set time");
-  int sysMenuBtnSetDate = sysMenu.add("Set date");
+  sysMenu.add("Set time", sysMenuSetTime);
+  sysMenu.add("Set date", sysMenuSetDate);
   sysMenu.draw();
 
   TS_Point p;
@@ -121,10 +121,6 @@ void sysMenuShow()
       key = sysMenu.processTSPoint(p);
       if (key == sysMenuBtnExit)
         return;
-      else if (key == sysMenuBtnSetTime)
-        sysMenuSetTime();
-      else if (key == sysMenuBtnSetDate)
-        sysMenuSetDate();
     }
 
     if (displayUpdate >= 1000)

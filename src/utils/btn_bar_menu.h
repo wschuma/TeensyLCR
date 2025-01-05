@@ -1,5 +1,5 @@
-#ifndef BTN_BAR_MENU
-#define BTN_BAR_MENU
+#ifndef BTN_BAR_MENU_H
+#define BTN_BAR_MENU_H
 
 #include <Arduino.h>
 #include <ILI9341_t3n.h>
@@ -10,50 +10,53 @@ static const uint8_t BTN_BAR_MENU_EVENT_IDLE = 0xFF;
 
 
 class BtnBarMenu {
-public:
-	BtnBarMenu(ILI9341_t3n* display);
+ public:
+  BtnBarMenu(ILI9341_t3n* display);
+  /** Initialize the menu without title. */
   void init(void (*keyFeedback)()) {
     init(keyFeedback, "");
   }
+  /** Initialize the menu. Add a menu title. */
   void init(void (*keyFeedback)(), const char* title) {
     _count = 0;
-    current_page = 0;
+    _current_page = 0;
     key_feedback = keyFeedback;
     _title = title;
   }
+  /** Returns the menu item count. */
   int itemCount() {
     return _count;
   };
+  /** Add a menu item without any action. */
   int add(const char* label);
-  int add(const char* label, void* callback);
-  int add(const char* label, const char** subText);
-  int add(const char* label, const char* sub_text, uint init_val, uint len);
+  /** Add a menu item with action. */
+  int add(const char* label, void (*action)());
+  /** Add a menu item with sub text and action. */
+  int add(const char* label, const char** subText, void (*action)());
+  /** Process button press */
   int processKey(int key_idx);
+  /** Process touch press */
   int processTSPoint(TS_Point p);
-  uint incVal(int id);
+  /** Returns the menu page count. */
   uint pageCount();
+  /** Draw the menu to display screen. */
   void draw();
-  void drawTitle();
 
-private:
+ private:
   void drawButtonBarText(int id, int btnNr);
-
-  ILI9341_t3n* d;
+  ILI9341_t3n* _display;
   int _count;
   const char* _title;
-  struct btnBarButton {
+  struct MenuItem {
     const char* label;
     const char** subText;
-    const char* sub_text;
-    uint len;
-    uint value;
     bool hasSubText;
-    bool has_sub_text;
+    void (*action)();
   };
-  struct btnBarButton buttons[15]; // max elements in a menu, increase as needed
-  int current_page;
+  struct MenuItem _items[15]; // max elements in a menu, increase as needed
+  int _current_page;
   void (*key_feedback)();
 };
 
 
-#endif
+#endif // BTN_BAR_MENU_H

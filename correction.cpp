@@ -220,9 +220,9 @@ void correctionMenu()
 
   menuCorr.init(btn_feedback, "Correction Menu");
   int menuCorrBtnClose = menuCorr.add("Close");
-  int menuCorrBtnApply = menuCorr.add("Apply", &corrApplyLabelSelection);
-  int menuCorrBtnOpen = menuCorr.add("Open");
-  int menuCorrBtnShort = menuCorr.add("Short");
+  menuCorr.add("Apply", &corrApplyLabelSelection, corrToggleApply);
+  menuCorr.add("Open", corrRunOpenMeas);
+  menuCorr.add("Short", corrRunShortMeas);
   menuCorr.draw();
   tft.updateScreen();
 
@@ -242,12 +242,6 @@ void correctionMenu()
       key = menuCorr.processTSPoint(p);
       if (key == menuCorrBtnClose)
         break;
-      else if (key == menuCorrBtnOpen)
-        corrRunOpenMeas();
-      else if (key == menuCorrBtnShort)
-        corrRunShortMeas();
-      else if (key == menuCorrBtnApply)
-        corrToggleApply();
     }
     
     if (osdMessage.clean())
