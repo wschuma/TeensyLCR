@@ -366,19 +366,19 @@ void calc_lcr() {
   switch (primary_func)
   {
     case LCR_FUNC_CS:
-      getDisplValue(params.cs, 5, -13, &val);
+      getDisplValue(params.cs, 5, -15, &val);
       val.unit = "F";
       break;
     case LCR_FUNC_CP:
-      getDisplValue(params.cp, 5, -13, &val);
+      getDisplValue(params.cp, 5, -15, &val);
       val.unit = "F";
       break;
     case LCR_FUNC_RS:
-      getDisplValue(params.rs, 5, -4, &val);
+      getDisplValue(params.rs, 5, -5, &val);
       val.unit = "Ohm";
       break;
     case LCR_FUNC_RP:
-      getDisplValue(params.rp, 5, -4, &val);
+      getDisplValue(params.rp, 5, -5, &val);
       val.unit = "Ohm";
       break;
     case LCR_FUNC_LS:
@@ -390,7 +390,7 @@ void calc_lcr() {
       val.unit = "H";
       break;
     case LCR_FUNC_Z:
-      getDisplValue(params.z, 5, -4, &val);
+      getDisplValue(params.z, 5, -5, &val);
       val.unit = "Ohm";
       break;
     case LCR_FUNC_G:
@@ -408,11 +408,11 @@ void calc_lcr() {
   switch (secondary_func)
   {
     case LCR_FUNC_RS:
-      getDisplValue(params.rs, 5, -4, &val);
+      getDisplValue(params.rs, 5, -5, &val);
       val.unit = "Ohm";//String(252); // Ohm
       break;
     case LCR_FUNC_RP:
-      getDisplValue(params.rp, 5, -4, &val);
+      getDisplValue(params.rp, 5, -5, &val);
       val.unit = "Ohm";//String(252); // Ohm
       break;
     case LCR_FUNC_D:
@@ -424,7 +424,7 @@ void calc_lcr() {
       val.unit = "";//String(250); // Theta italic
       break;
     case LCR_FUNC_X:
-      getDisplValue(params.xs, 5, -4, &val);
+      getDisplValue(params.xs, 5, -5, &val);
       val.unit = "Ohm";//String(252); // Ohm
       break;
     case LCR_FUNC_PHID:
