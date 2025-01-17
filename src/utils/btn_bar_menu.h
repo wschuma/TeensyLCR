@@ -38,14 +38,14 @@ class BtnBarMenu {
   /** Process touch press */
   int processTSPoint(TS_Point p);
   /** Returns the menu page count. */
-  uint pageCount();
+  uint8_t pageCount();
   /** Draw the menu to display screen. */
   void draw();
 
  private:
   void drawButtonBarText(int id, int btnNr);
   ILI9341_t3n* _display;
-  int _count;
+  uint8_t _count;
   const char* _title;
   struct MenuItem {
     const char* label;
@@ -54,7 +54,7 @@ class BtnBarMenu {
     void (*action)();
   };
   struct MenuItem _items[15]; // max elements in a menu, increase as needed
-  int _current_page;
+  uint8_t _current_page;
   void (*key_feedback)();
 };
 

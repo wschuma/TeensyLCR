@@ -7,7 +7,7 @@ static const uint8_t BTN_BAR_MENU_ELEMENTS_PER_SCREEN = 4;
 
 static const uint BUTTON_SIZE = 80;
 static const uint BUTTON_BAR_HEIGHT = 56;
-static const uint BUTTON_BAR_Y_POS = 240 - BUTTON_BAR_HEIGHT;
+static const int BUTTON_BAR_Y_POS = 240 - BUTTON_BAR_HEIGHT;
 static const uint BUTTON_BAR_TXT_Y_POS = BUTTON_BAR_Y_POS + 15;
 static const uint BUTTON_BAR_SUBTXT_Y_POS = BUTTON_BAR_TXT_Y_POS + 27;
 
@@ -45,7 +45,7 @@ int BtnBarMenu::add(const char* label, const char** subText, void (*action)()) {
   return id;
 }
 
-uint BtnBarMenu::pageCount()
+uint8_t BtnBarMenu::pageCount()
 {
   if (_count > BTN_BAR_MENU_ELEMENTS_PER_SCREEN)
     return 1 + (_count - 1) / (BTN_BAR_MENU_ELEMENTS_PER_SCREEN - 1);
@@ -101,8 +101,8 @@ void BtnBarMenu::draw() {
     y = BUTTON_BAR_SUBTXT_Y_POS;
     _display->setTextColor(ILI9341_YELLOW);
     _display->setCursor(x, y, true);
-    char buf[6];
-	sprintf(buf, "%i/%i", _current_page + 1, pageCount());
+    char buf[9];
+    sprintf(buf, "%i/%i", _current_page + 1, pageCount());
     _display->print(buf);
   }
 }
