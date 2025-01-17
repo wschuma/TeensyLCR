@@ -1,20 +1,21 @@
-#include "func_lcr.h"
+#include "apps.h"
 #include <Arduino.h>
+#include "audio_design.h"
 #include "autorange.h"
 #include "board.h"
 #include "CComplex.h"
 #include "correction.h"
-#include "settings.h"
-#include "audio_design.h"
-#include "MathHelpers.h"
-#include "globals.h"
 #include "displayhelp.h"
-#include "src/utils/btn_bar_menu.h"
-#include "apps.h"
+#include "func_lcr.h"
+#include "globals.h"
+#include "helper.h"
 #include <ili9341_t3n_font_Arial.h>
 #include "lcr_param.h"
+#include "MathHelpers.h"
+#include "settings.h"
+#include "src/utils/btn_bar_menu.h"
+#include "sweep.h"
 #include "sysmenu.h"
-#include "helper.h"
 
 
 static const uint LCR_FUNC_NUM = 15;
