@@ -144,6 +144,7 @@ int BtnBarMenu::processKey(int key_idx)
     (void)(*key_feedback)();
     // Update menu on display
     draw();
+    _display->updateScreen();
     // Nothing selected yet
     return BTN_BAR_MENU_EVENT_IDLE;
   }
