@@ -219,7 +219,7 @@ void correctionMenu()
   corrDrawPage();
 
   menuCorr.init(btn_feedback, "Correction Menu");
-  int menuCorrBtnClose = menuCorr.add("Close");
+  int menuCorrBtnExit = menuCorr.add("Exit");
   menuCorr.add("Apply", &corrApplyLabelSelection, corrToggleApply);
   menuCorr.add("Open", corrRunOpenMeas);
   menuCorr.add("Short", corrRunShortMeas);
@@ -240,7 +240,7 @@ void correctionMenu()
     if (getTouchPoint(&p))
     {
       key = menuCorr.processTSPoint(p);
-      if (key == menuCorrBtnClose)
+      if (key == menuCorrBtnExit)
         break;
     }
     

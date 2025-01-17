@@ -102,7 +102,7 @@ void sysMenuShow()
   tft.fillScreen(ILI9341_BLACK);
 
   sysMenu.init(btn_feedback, "System Menu");
-  int sysMenuBtnExit = sysMenu.add("Close");
+  int sysMenuBtnExit = sysMenu.add("Exit");
   sysMenu.add("Set time", sysMenuSetTime);
   sysMenu.add("Set date", sysMenuSetDate);
   sysMenu.draw();
