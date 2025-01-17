@@ -2,6 +2,7 @@
 #include <Arduino.h>
 #include "autorange.h"
 #include "board.h"
+#include "CComplex.h"
 #include "correction.h"
 #include "settings.h"
 #include "audio_design.h"
@@ -11,63 +12,31 @@
 #include "src/utils/btn_bar_menu.h"
 #include "apps.h"
 #include <ili9341_t3n_font_Arial.h>
+#include "lcr_param.h"
 #include "sysmenu.h"
 #include "helper.h"
 
 
-static const uint AMPLITUDE_PRESETS_NUM = 3;
-
-#define LCR_FUNC_CS       0
-#define LCR_FUNC_CP       1
-#define LCR_FUNC_LS       2
-#define LCR_FUNC_LP       3
-#define LCR_FUNC_RS       4
-#define LCR_FUNC_RP       5
-#define LCR_FUNC_Z        6
-#define LCR_FUNC_Y        7
-#define LCR_FUNC_G        8
-#define LCR_FUNC_B        9
-#define LCR_FUNC_X        10
-#define LCR_FUNC_PHID     11
-#define LCR_FUNC_PHIR     12
-#define LCR_FUNC_D        13
-#define LCR_FUNC_Q        14
-#define LCR_FUNC_VAC      15
-#define LCR_FUNC_IAC      16
-
-#define LCR_FUNC_CS_RS        (LCR_FUNC_CS << 8) | LCR_FUNC_RS
-#define LCR_FUNC_CS_D         (LCR_FUNC_CS << 8) | LCR_FUNC_D
-#define LCR_FUNC_CP_RP        (LCR_FUNC_CP << 8) | LCR_FUNC_RP
-#define LCR_FUNC_CP_D         (LCR_FUNC_CP << 8) | LCR_FUNC_D
-#define LCR_FUNC_LP_RP        (LCR_FUNC_LP << 8) | LCR_FUNC_RP
-#define LCR_FUNC_LP_Q         (LCR_FUNC_LP << 8) | LCR_FUNC_Q
-#define LCR_FUNC_LS_RS        (LCR_FUNC_LS << 8) | LCR_FUNC_RS
-#define LCR_FUNC_LS_Q         (LCR_FUNC_LS << 8) | LCR_FUNC_Q
-#define LCR_FUNC_RS_Q         (LCR_FUNC_RS << 8) | LCR_FUNC_Q
-#define LCR_FUNC_RP_Q         (LCR_FUNC_RP << 8) | LCR_FUNC_Q
-#define LCR_FUNC_R_X          (LCR_FUNC_RS << 8) | LCR_FUNC_X
-#define LCR_FUNC_Z_PHID       (LCR_FUNC_Z << 8) | LCR_FUNC_PHID
-#define LCR_FUNC_Z_D          (LCR_FUNC_Z << 8) | LCR_FUNC_D
-#define LCR_FUNC_Z_Q          (LCR_FUNC_Z << 8) | LCR_FUNC_Q
-#define LCR_FUNC_G_B          (LCR_FUNC_G << 8) | LCR_FUNC_B
-
 static const uint LCR_FUNC_NUM = 15;
-static const uint lcr_func_presets[LCR_FUNC_NUM] = {
-  LCR_FUNC_CS_RS,
-  LCR_FUNC_CS_D,
-  LCR_FUNC_CP_RP,
-  LCR_FUNC_CP_D,
-  LCR_FUNC_LP_RP,
-  LCR_FUNC_LP_Q,
-  LCR_FUNC_LS_RS,
-  LCR_FUNC_LS_Q,
-  LCR_FUNC_RS_Q,
-  LCR_FUNC_RP_Q,
-  LCR_FUNC_R_X, 
-  LCR_FUNC_Z_PHID,
-  LCR_FUNC_Z_D,
-  LCR_FUNC_Z_Q,
-  LCR_FUNC_G_B
+static const uint8_t PRIMARY = 0;
+static const uint8_t SECONDARY = 1;
+
+lcr_param_t *lcrParams[LCR_FUNC_NUM][2] = {
+  {&lcrParamCs, &lcrParamRs},
+  {&lcrParamCs, &lcrParamD},
+  {&lcrParamCp, &lcrParamRp},
+  {&lcrParamCp, &lcrParamD},
+  {&lcrParamLp, &lcrParamRp},
+  {&lcrParamLp, &lcrParamQ},
+  {&lcrParamLs, &lcrParamRs},
+  {&lcrParamLs, &lcrParamQ},
+  {&lcrParamRs, &lcrParamQ},
+  {&lcrParamRp, &lcrParamQ},
+  {&lcrParamRs, &lcrParamXs},
+  {&lcrParamZ, &lcrParamPhiD},
+  {&lcrParamZ, &lcrParamD},
+  {&lcrParamZ, &lcrParamQ},
+  {&lcrParamG, &lcrParamB},
 };
 
 typedef struct lcr_settings_struct {
@@ -104,6 +73,7 @@ const char *functionLabels[LCR_FUNC_NUM] = {
 };
 const char *functionLabelSelection;
 
+static const uint AMPLITUDE_PRESETS_NUM = 3;
 static const float amplitudePresets[AMPLITUDE_PRESETS_NUM] = {0.3, 0.6, 1.0};
 const char *levelLabels[AMPLITUDE_PRESETS_NUM] = {"300 mV", "600 mV", "1 V"};
 
@@ -157,106 +127,21 @@ void printCalData() {
   Serial.println(sci(calInB.gainFactor[3], 6));
 }
 
-lcr_params_t lcrCalcParams(float z, float phi, float f) {
-  lcr_params_t results;
-
-  // radian frequency in radians per second
-  float omega = 2 * PI * f;
-
-  results.z = z;
-  results.phi = phi;
-  results.y = 1 / results.z;
-  results.rs = results.z * cos(results.phi);
-  results.xs = results.z * sin(results.phi);
-  results.g = 1 / results.rs;
-  results.b = 1 / results.xs;
-  results.q = abs(results.xs) / results.rs;
-  results.d = 1 / results.q;
-  results.rp = (1 + results.q * results.q) * results.rs;
-  results.ls = abs(results.xs) / omega;
-  results.lp = results.ls * (1 + results.d * results.d);
-  results.cs = 1 / abs(results.xs) / omega;
-  results.cp = results.cs / (1 + results.d * results.d);
-
-  return results;
-}
-
 void lcrDrawFuncIndicators()
 {
   // skip if debug display
   if (lcrSettings.displMode != 0)
     return;
 
-  uint preset = lcr_func_presets[lcrSettings.function];
-  uint8_t primary_func = preset >> 8;
-  uint8_t secondary_func = preset & 0xff;
-
   tft.fillRect(0, MAIN_DISPLAY_Y_PRIMARY, 31, 14, ILI9341_BLACK);
   tft.setFont(Arial_14);
   tft.setTextColor(ILI9341_GREEN);
   tft.setCursor(0, MAIN_DISPLAY_Y_PRIMARY);
-
-  switch (primary_func)
-  {
-    case LCR_FUNC_CS:
-      tft.print("Cs");
-      break;
-    case LCR_FUNC_CP:
-      tft.print("Cp");
-      break;
-    case LCR_FUNC_RS:
-      tft.print("Rs");
-      break;
-    case LCR_FUNC_RP:
-      tft.print("Rp");
-      break;
-    case LCR_FUNC_LS:
-      tft.print("Ls");
-      break;
-    case LCR_FUNC_LP:
-      tft.print("Lp");
-      break;
-    case LCR_FUNC_Z:
-      tft.print("Z");
-      break;
-    case LCR_FUNC_G:
-      tft.print("G");
-      break;
-  }
+  tft.print(lcrParams[lcrSettings.function][PRIMARY]->label);
 
   tft.fillRect(0, MAIN_DISPLAY_Y_SECONDARY, 31, 14, ILI9341_BLACK);
   tft.setCursor(0, MAIN_DISPLAY_Y_SECONDARY);
-
-  switch (secondary_func)
-  {
-    case LCR_FUNC_RS:
-      tft.print("Rs");
-      break;
-    case LCR_FUNC_RP:
-      tft.print("Rp");
-      break;
-    case LCR_FUNC_D:
-      tft.print("D");
-      break;
-    case LCR_FUNC_Q:
-      tft.print("Q");
-      break;
-    case LCR_FUNC_X:
-      tft.print("X");
-      break;
-    case LCR_FUNC_PHID:
-      tft.print("Phi");
-      break;
-    case LCR_FUNC_PHIR:
-      tft.print("Phi");
-      break;
-    case LCR_FUNC_Y:
-      tft.print("Y");
-      break;
-    case LCR_FUNC_B:
-      tft.print("B");
-      break;
-  }
+  tft.print(lcrParams[lcrSettings.function][SECONDARY]->label);
 }
 
 void lcrUpdateCorrState()
@@ -350,101 +235,31 @@ void calc_lcr() {
 
   float impedance = adReadings.v_rms / adReadings.i_rms;
   float phase = adReadings.phase;
-  disp_val_t val;
-  
+
   if (applyCorrection)
     corrApply(&impedance, &phase);
 
-  lcr_params_t params = lcrCalcParams(impedance, phase, lcrSettings.frequency);
-
-  uint preset = lcr_func_presets[lcrSettings.function];
-  uint8_t primary_func = preset >> 8;
-  uint8_t secondary_func = preset & 0xff;
   if (impedance > LCR_THRESHOLD_OPEN)
-    primary_func = 0xff;
-  
-  switch (primary_func)
   {
-    case LCR_FUNC_CS:
-      getDisplValue(params.cs, 5, -15, &val);
-      val.unit = "F";
-      break;
-    case LCR_FUNC_CP:
-      getDisplValue(params.cp, 5, -15, &val);
-      val.unit = "F";
-      break;
-    case LCR_FUNC_RS:
-      getDisplValue(params.rs, 5, -5, &val);
-      val.unit = "Ohm";
-      break;
-    case LCR_FUNC_RP:
-      getDisplValue(params.rp, 5, -5, &val);
-      val.unit = "Ohm";
-      break;
-    case LCR_FUNC_LS:
-      getDisplValue(params.ls, 5, -8, &val);
-      val.unit = "H";
-      break;
-    case LCR_FUNC_LP:
-      getDisplValue(params.lp, 5, -8, &val);
-      val.unit = "H";
-      break;
-    case LCR_FUNC_Z:
-      getDisplValue(params.z, 5, -5, &val);
-      val.unit = "Ohm";
-      break;
-    case LCR_FUNC_G:
-      getDisplValue(params.g, 5, -8, &val);
-      val.unit = "S";
-      break;
-    default:
-      drawPrimaryDisplay(" Open");
-      drawSecondaryDisplay("");
-      return;
+    drawPrimaryDisplay(" Open");
+    drawSecondaryDisplay("");
+    return;
   }
 
+  Complex z;
+  z.polar(impedance, phase);
+  disp_val_t val;
+  
+  float value = lcrParams[lcrSettings.function][PRIMARY]->value(z, lcrSettings.frequency);
+  int8_t resolution = lcrParams[lcrSettings.function][PRIMARY]->resolution;
+  getDisplValue(value, 5, resolution, &val);
+  val.unit = lcrParams[lcrSettings.function][PRIMARY]->unit;
   drawPrimaryDisplay(&val);
   
-  switch (secondary_func)
-  {
-    case LCR_FUNC_RS:
-      getDisplValue(params.rs, 5, -5, &val);
-      val.unit = "Ohm";//String(252); // Ohm
-      break;
-    case LCR_FUNC_RP:
-      getDisplValue(params.rp, 5, -5, &val);
-      val.unit = "Ohm";//String(252); // Ohm
-      break;
-    case LCR_FUNC_D:
-      getDisplValueExt(params.d, 5, -4, &val, true);
-      val.unit = "";//String(251); // Theta
-      break;
-    case LCR_FUNC_Q:
-      getDisplValueExt(params.q, 5, -4, &val, true);
-      val.unit = "";//String(250); // Theta italic
-      break;
-    case LCR_FUNC_X:
-      getDisplValue(params.xs, 5, -5, &val);
-      val.unit = "Ohm";//String(252); // Ohm
-      break;
-    case LCR_FUNC_PHID:
-      getDisplValueExt(params.phi / PI * 180, 5, -3, &val, true);
-      val.unit = "o";//String(253); // deg
-      break;
-    case LCR_FUNC_PHIR:
-      getDisplValueExt(params.phi, 5, -3, &val, true);
-      val.unit = "rad";//String(253); // deg "o";
-      break;
-    case LCR_FUNC_Y:
-      getDisplValue(params.y, 5, -4, &val);
-      val.unit = "";
-      break;
-    case LCR_FUNC_B:
-      getDisplValue(params.b, 5, -8, &val);
-      val.unit = "S";
-      break;
-  }
-
+  value = lcrParams[lcrSettings.function][SECONDARY]->value(z, lcrSettings.frequency);
+  resolution = lcrParams[lcrSettings.function][SECONDARY]->resolution;
+  getDisplValue(value, 5, resolution, &val);
+  val.unit = lcrParams[lcrSettings.function][SECONDARY]->unit;
   drawSecondaryDisplay(&val);
 }
 
@@ -476,11 +291,11 @@ void calc_lcr2() {
   float impedance = adReadings.v_rms / adReadings.i_rms;
   float phase = adReadings.phase;
   disp_val_t val;
+  Complex z;
+  z.polar(impedance, phase);
   
   if (applyCorrection)
     corrApply(&impedance, &phase);
-
-  lcr_params_t params = lcrCalcParams(impedance, phase, lcrSettings.frequency);
 
   tft.print("h V= ");
   tft.print(adHeadroom(adReadings.v_peak));
@@ -516,7 +331,7 @@ void calc_lcr2() {
   //tft.println(adReadings.a2 / PI * 180, 3);
   
   tft.print("Rs= ");
-  tft.println(sci(params.rs, 6));
+  tft.println(sci(z.modulus(), 6));
   /*
   
   Serial.println("correction");
