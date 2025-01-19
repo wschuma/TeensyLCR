@@ -30,7 +30,6 @@ void adInit();
 void adSetOutputFrequency(float frequency);
 void adSetOutputAmplitude(float amplitude);
 void adSetOutputOffset(float offset);
-void adResetSquarewavePhase();
 float adHeadroom(float peaklevel);
 void adResetReadings();
 void adAverageReadings();

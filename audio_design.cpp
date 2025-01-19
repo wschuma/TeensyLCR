@@ -77,6 +77,18 @@ ad_readings_t adReadings;
 bool adDataAvailable = false;
 float _frequency;
 
+/*
+ * Reset the phase angle of the square wave signals.
+ */
+void adResetSquarewavePhase() {
+  AudioNoInterrupts();
+  
+  squarewave.phase(0);
+  squarewave_90.phase(90);
+
+  AudioInterrupts();
+}
+
 void adInit() {
   AudioMemory(34);
   CS4272.enable();
@@ -99,6 +111,7 @@ void adSetOutputFrequency(float frequency) {
   sine1.frequency(frequency);
   squarewave.frequency(frequency);
   squarewave_90.frequency(frequency);
+  adResetSquarewavePhase();
   adResetReadings();
   _frequency = frequency;
 }
@@ -119,18 +132,6 @@ void adSetOutputOffset(float offset) {
   float offset_a = offset * calOutA.transmissionFactor * calOutA.gainFactor;
   sine1.offset(offset_a);
   adResetReadings();
-}
-
-/*
- * Reset the phase angle of the square wave signals.
- */
-void adResetSquarewavePhase() {
-  AudioNoInterrupts();
-  
-  squarewave.phase(0);
-  squarewave_90.phase(90);
-
-  AudioInterrupts();
 }
 
 /*

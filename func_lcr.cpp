@@ -419,9 +419,7 @@ void lcrSetFrequency(float f)
   if (f > 0) {
     lcrSettings.frequency = f;
     adSetOutputFrequency(lcrSettings.frequency);
-    adResetSquarewavePhase();
     forceRanging = true;
-    adSetAveraging(1);
     lcrUpdateCorrState();
   }
   activeMenu = APP_DEFAULT;
@@ -497,7 +495,6 @@ void lcrApplySettings()
   adSetOutputOffset(0);
 
   adSetOutputFrequency(lcrSettings.frequency);
-  adResetSquarewavePhase();
 }
 
 void lcrCorrectionMenu()
