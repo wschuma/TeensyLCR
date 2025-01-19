@@ -457,7 +457,6 @@ void lcrSetAmplitude()
   lcrSettings.amplitudePreset = ++lcrSettings.amplitudePreset % AMPLITUDE_PRESETS_NUM;
   adSetOutputAmplitude(amplitudePresets[lcrSettings.amplitudePreset] * sqrtf(2));
   forceRanging = true;
-  adSetAveraging(1);
   lcrDrawMeasSetup();
   lcrDrawMenu();
 }

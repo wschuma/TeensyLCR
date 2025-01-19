@@ -126,8 +126,9 @@ void corrRunMeas(bool open)
   // setup correction
   adSetOutputAmplitude(1.0 * sqrtf(2));
   adSetOutputOffset(0);
-  adSetAveraging(256);
+  adSetAveraging(128);
   bool forceRanging = true;
+  uint8_t measToDo = 1;
 
   // take readings
   while (1) {
@@ -147,10 +148,12 @@ void corrRunMeas(bool open)
         forceRanging = false;
       } else if (state == RangingState::Finished) {
         // finished ranging, restore averaging
-        adSetAveraging(256);
+        adSetAveraging(128);
       } else if (state == RangingState::None) {
         // range is ok and readings are available
-        break;
+        if (measToDo-- == 0)
+          break;
+        adDataAvailable = false;
       }
     }
   }
