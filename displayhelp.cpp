@@ -474,9 +474,8 @@ float enterFloat(uint maxDigits, bool volt)
     return 0;
 }
 
-bool enterFrequency(float* f, float max)
+bool enterFrequency(float* f, float max, float min)
 {
-  float min = 0.1;
   uint charsLeft = 3;
   float val = 0.0;
   char key = 0;
