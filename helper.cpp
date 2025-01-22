@@ -38,14 +38,22 @@ int usbCheckPartition()
 
 void saveScreenshot(ILI9341_t3n *display)
 {
-  char filePath[50];
-  sprintf(filePath, "/screenshot_%04i-%02i-%02i_%02i-%02i-%02i.bmp", year(), month(), day(), hour(), minute(), second());
-
   int state = usbCheckPartition();
   if (state) {
     osdMessage.setMessage(F("USB drive not connected!"));
     return;
   }
+
+  // find filename
+  char filePath[21];
+  uint filenr = 0;
+  do {
+    if (++filenr > 9999) {
+      return;
+    }
+    sprintf(filePath, "/screenshot_%04i.bmp", filenr);
+  } while (usbPartition1.exists(filePath));
+
   File f = usbPartition1.open(filePath, FILE_WRITE_BEGIN);
   if (!f)
   {
