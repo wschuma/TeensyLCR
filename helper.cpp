@@ -52,6 +52,13 @@ void saveScreenshot(ILI9341_t3n *display)
     osdMessage.setMessage(F("Failed to create file!"));
     return;
   }
+
+  // set timestamp of file
+  DateTimeFields dtf;
+  breakTime(Teensy3Clock.get(), dtf);
+  f.setCreateTime(dtf);
+  f.setModifyTime(dtf);
+
   uint16_t *imageData = display->getFrameBuffer();
   writeImageToFile(&f, imageData, display->width(), display->height());
   
