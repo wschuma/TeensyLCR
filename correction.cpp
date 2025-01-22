@@ -99,9 +99,9 @@ void corrRunMeas(bool open)
 {
   // show instruction message
   if (open) {
-    showMessage("Open-circuit the test terminals.");
+    showMessage(F("Open-circuit the test terminals."));
   } else {
-    showMessage("Short-circuit the test terminals.");
+    showMessage(F("Short-circuit the test terminals."));
   }
   
   TS_Point p;
@@ -119,7 +119,7 @@ void corrRunMeas(bool open)
     corr_data.zp = corr_data.z0;
   }
   
-  osdMessage.setMessage("Measurement in progress...");
+  osdMessage.setMessage(F("Measurement in progress..."));
   osdMessage.show();
   tft.updateScreen();
 
@@ -166,12 +166,12 @@ void corrRunMeas(bool open)
   const float SHORT_MEAS_MAX_IMPEDANCE = 1.0;
   if (open && impedance < OPEN_MEAS_MIN_IMPEDANCE)
   {
-    osdMessage.setMessage("Error! Terminals not open!");
+    osdMessage.setMessage(F("Error! Terminals not open!"));
     return;
   }
   else if (!open && impedance > SHORT_MEAS_MAX_IMPEDANCE)
   {
-    osdMessage.setMessage("Error! Terminals not shorted!");
+    osdMessage.setMessage(F("Error! Terminals not shorted!"));
     return;
   }
 

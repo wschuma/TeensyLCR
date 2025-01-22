@@ -40,5 +40,6 @@ void drawSecondaryDisplay(String s);
 void printDigits(int digits);
 void printDateTime(time_t time);
 void showMessage(const char *msg);
+void showMessage(const __FlashStringHelper *f);
 
 #endif

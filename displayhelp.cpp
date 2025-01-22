@@ -969,3 +969,12 @@ void showMessage(const char *msg)
       return;
   }
 }
+
+/*
+ * Show onscreen message and a menu with OK button.
+ */
+void showMessage(const __FlashStringHelper *f)
+{
+  showMessage((const char*)f);
+}
+

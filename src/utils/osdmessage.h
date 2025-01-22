@@ -8,6 +8,7 @@ class OSDMessage {
 public:
   OSDMessage(ILI9341_t3n* Display);
   void setMessage(const char* text);
+  void setMessage(const __FlashStringHelper *f) { setMessage((const char*) f); };
   bool show();
   bool clean();
   void clear();
