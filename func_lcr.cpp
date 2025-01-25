@@ -11,54 +11,15 @@
 #include "helper.h"
 #include <ili9341_t3n_font_Arial.h>
 #include "lcr_param.h"
+#include "lcr_setup.h"
 #include "MathHelpers.h"
 #include "settings.h"
 #include "src/utils/btn_bar_menu.h"
 #include "sweep.h"
 #include "sysmenu.h"
 
-
-static const uint LCR_FUNC_NUM = 15;
 static const uint8_t PRIMARY = 0;
 static const uint8_t SECONDARY = 1;
-
-lcr_param_t *lcrParams[LCR_FUNC_NUM][2] = {
-  {&lcrParamCs, &lcrParamRs},
-  {&lcrParamCs, &lcrParamD},
-  {&lcrParamCp, &lcrParamRp},
-  {&lcrParamCp, &lcrParamD},
-  {&lcrParamLp, &lcrParamRp},
-  {&lcrParamLp, &lcrParamQ},
-  {&lcrParamLs, &lcrParamRs},
-  {&lcrParamLs, &lcrParamQ},
-  {&lcrParamRs, &lcrParamQ},
-  {&lcrParamRp, &lcrParamQ},
-  {&lcrParamRs, &lcrParamXs},
-  {&lcrParamZ, &lcrParamPhiD},
-  {&lcrParamZ, &lcrParamD},
-  {&lcrParamZ, &lcrParamQ},
-  {&lcrParamG, &lcrParamB},
-};
-
-typedef struct lcr_settings_struct {
-  float frequency;
-  uint8_t amplitudePreset;
-  uint8_t displMode;
-  uint8_t dcBias;
-  uint8_t range_mode;
-  uint8_t function;
-  uint16_t averaging;
-} lcr_settings_t;
-
-lcr_settings_t lcrSettings = {
-  .frequency = 1000,
-  .amplitudePreset = 2,
-  .displMode = 0,
-  .dcBias = 0,
-  .range_mode = 0,
-  .function = 0,
-  .averaging = 32,
-};
 
 bool forceRanging = false;
 
@@ -66,17 +27,7 @@ bool forceRanging = false;
 BtnBarMenu lcrMenu(&tft);
 BtnBarMenu lcrSetFreqMenu(&tft);
 
-const char *functionLabels[LCR_FUNC_NUM] = {
-  "Cs-Rs", "Cs-D", "Cp-Rp", "Cp-D",
-  "Lp-Rp", "Lp-Q", "Ls-Rs", "Ls-Q",
-  "Rs-Q",  "Rp-Q", "R-X",   "Z-Phi",
-  "Z-D",   "Z-Q", "G-B"
-};
 const char *functionLabelSelection;
-
-static const uint AMPLITUDE_PRESETS_NUM = 3;
-static const float amplitudePresets[AMPLITUDE_PRESETS_NUM] = {0.3, 0.6, 1.0};
-const char *levelLabels[AMPLITUDE_PRESETS_NUM] = {"300 mV", "600 mV", "1 V"};
 
 const char *displModeLabels[] = {"Normal", "Debug"};
 const char *displModeLabelSelection;
@@ -89,23 +40,6 @@ const char *corrLabelSelection;
 bool applyCorrection = false;
 
 char avgStr[6];
-
-typedef struct lcr_params_struct {
-  float phi;  // phase angle of impedance
-  float z;    // impedance (phasor)
-  float y;    // admittance (phasor)
-  float q;    // quality factor
-  float d;    // dissipation factor
-  float rs;   // equivalent series resistance (ESR)
-  float g;    // conductance
-  float cs;   // series capacitance
-  float ls;   // series inductance
-  float xs;   // series reactance
-  float b;    // susceptance
-  float rp;   // parallel resistance
-  float cp;   // parallel capacitance
-  float lp;   // parallel inductance
-} lcr_params_t;
 
 void printCalData() {
   Serial.println("calOutA");
