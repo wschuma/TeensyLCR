@@ -438,6 +438,14 @@ void lcrCorrectionMenu()
   lcrResetScreen();
 }
 
+void lcrSweepMenu()
+{
+  sweepPage();
+  lcrSettings.range_mode = 0;
+  lcrApplySettings();
+  lcrResetScreen();
+}
+
 void lcrHandleButtons() {
   char key = keypad.getKey();
   if (!key)
@@ -516,6 +524,7 @@ void lcrApplication()
   lcrMenu.add("Function", &functionLabelSelection, lcr_select_func);
   lcrMenu.add("Range", &rangeModeLabelSelection, lcrSetRangeMode);
   lcrMenu.add("Corr.", lcrCorrectionMenu);
+  lcrMenu.add("Sweep", lcrSweepMenu);
   lcrMenu.add("Avg.", &avgStrPtr, lcrSetAveraging);
   lcrMenu.add("Display", &displModeLabelSelection, lcrSetDisplayMode);
 
