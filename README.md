@@ -72,6 +72,12 @@ Phi         | -90.000° ~ 90.000°
 
 The user can perform OPEN and SHORT correction used to eliminate stray admittance, residual impedances and other measurement errors. The correction uses the currently selected test frequency (spot correction).
 
+#### List Sweep
+
+The sweep function scans the frequency over the component under test with up to 30 points.
+It can sweep the frequency linearly or logarithmically. Results are presented in a table.
+If a USB flash drive is connected, the table sweep results are saved as a text file.
+
 ## Additional Features
 
 ### USB Host
