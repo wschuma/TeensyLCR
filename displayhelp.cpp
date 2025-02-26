@@ -978,3 +978,12 @@ void showMessage(const __FlashStringHelper *f)
   showMessage((const char*)f);
 }
 
+/*
+ * Draw a progress bar to screen.
+ */
+void drawProgressBar(const float value)
+{
+  int16_t w = min(1, max(0, value)) * 318;
+  tft.fillRect(0, 171, 320, 13, ILI9341_BLACK);
+  tft.fillRect(1, 172, w, 10, ILI9341_BLUE);
+}

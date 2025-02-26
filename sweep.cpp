@@ -305,7 +305,10 @@ void runSweepMeas()
     adSetOutputFrequency(f);
     forceRanging = true;
     measToDo = 1;
-    
+
+    drawProgressBar((float)point / sweepResults.length);
+    tft.updateScreen();
+
     // take readings
     while (1) {
       if (getTouchPoint(&p))
