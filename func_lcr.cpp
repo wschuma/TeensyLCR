@@ -81,8 +81,7 @@ void lcrDrawFuncIndicators()
 
 void lcrUpdateCorrState()
 {
-  if (corr_data.f == lcrSettings.frequency && corr_data.apply &&
-      (corr_data.z0_time > 0 || corr_data.zs_time > 0))
+  if (corr_apply && (corr_data.ts_open > 0 || corr_data.ts_short > 0))
   {
     corrLabelSelection = offOnLabels[1];
     applyCorrection = true;
@@ -172,7 +171,7 @@ void calc_lcr() {
   float phase = adReadings.phase;
 
   if (applyCorrection)
-    corrApply(&impedance, &phase);
+    corrApply(&impedance, &phase, lcrSettings.frequency);
 
   if (impedance > LCR_THRESHOLD_OPEN)
   {
@@ -230,7 +229,7 @@ void calc_lcr2() {
   z.polar(impedance, phase);
   
   if (applyCorrection)
-    corrApply(&impedance, &phase);
+    corrApply(&impedance, &phase, lcrSettings.frequency);
 
   tft.print("h V= ");
   tft.print(adHeadroom(adReadings.v_peak));
@@ -267,21 +266,7 @@ void calc_lcr2() {
   
   tft.print("Rs= ");
   tft.println(sci(z.modulus(), 6));
-  /*
   
-  Serial.println("correction");
-  
-  cmplx_versor_t zo;
-  zo.z = 43915.0;
-  zo.phi = 26.19;
-  cmplx_versor_t zm;
-  zm.z = params.z;
-  zm.phi = params.phi;
-  cmplx_versor_t z_cor = lcrCorrection(zm, zo);
-  params = lcrCalcParams(z_cor.z, z_cor.phi, frequency_presets[frequency]);
-  print_lcr_params(params);
-  */
-  //Serial.println();
   tft.print("Gv:");
   tft.print(boardSettings.gain_v);
   tft.print(" Gi:");
@@ -354,7 +339,6 @@ void lcrSetFrequency(float f)
     lcrSettings.frequency = f;
     adSetOutputFrequency(lcrSettings.frequency);
     forceRanging = true;
-    lcrUpdateCorrState();
   }
   activeMenu = APP_DEFAULT;
   lcrResetScreen();

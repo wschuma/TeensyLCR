@@ -2,6 +2,7 @@
 #include "audio_design.h"
 #include "autorange.h"
 #include "board.h"
+#include "correction.h"
 #include "displayhelp.h"
 #include "helper.h"
 #include "lcr_param.h"
@@ -293,6 +294,7 @@ void runSweepMeas()
   bool forceRanging;
   uint8_t measToDo;
   bool aborted = false;
+  bool applyCorrection = corr_apply && (corr_data.ts_open > 0 || corr_data.ts_short > 0);
 
   osdMessage.setMessage(F("Measurement in progress..."));
   osdMessage.show();
@@ -338,10 +340,16 @@ void runSweepMeas()
     }
     if (aborted)
       break;
-    
+
     // store data
+    float impedance = adReadings.v_rms / adReadings.i_rms;
+    float phase = adReadings.phase;
+
+    if (applyCorrection)
+      corrApply(&impedance, &phase, f);
+
     Complex z;
-    z.polar(adReadings.v_rms / adReadings.i_rms, adReadings.phase);
+    z.polar(impedance, phase);
     sweepResults.prim[point] = lcrParams[lcrSettings.function][0]->value(z, f);
     sweepResults.secn[point] = lcrParams[lcrSettings.function][1]->value(z, f);
     sweepResults.count++;
