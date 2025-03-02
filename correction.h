@@ -4,10 +4,12 @@
 #include <Arduino.h>
 #include "CComplex.h" // https://github.com/RobTillaart/Complex
 
-static const uint8_t CORR_FREQ_COUNT = 21;
+static const uint8_t CORR_FREQ_COUNT = 38;
 static const float corr_frequencies[CORR_FREQ_COUNT] = {
-  100, 500, 1000, 1500, 2000, 2500, 3000, 4000, 5000, 6000, 8000,
-  10000, 15000, 20000, 25000, 30000, 40000, 50000, 60000, 80000, 90000
+  10, 20, 30, 40, 50, 60, 80,
+  100, 120, 150, 200, 250, 300, 400, 500, 600, 800,
+  1000, 1200, 1500, 2000, 2500, 3000, 4000, 5000, 6000, 8000,
+  10000, 12000, 15000, 20000, 25000, 30000, 40000, 50000, 60000, 80000, 90000
 };
 
 typedef struct corr_data_struct {

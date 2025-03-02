@@ -27,7 +27,7 @@ uint get_list_entry(const char** list, uint length, uint selected);
 bool enterNr(uint* val, int min, int max);
 float enterFloat(uint maxDigits, bool volt);
 bool enterFloat(float* val, float min, float max);
-bool enterFrequency(float* f, float max, float min = 100.0);
+bool enterFrequency(float* f, float max, float min = 10.0);
 bool enterTime(int* hr, int* min);
 bool enterDate(int* day, int* month, int* yr);
 void getDisplValue(float v, uint digits, int resolution, disp_val_t* out);

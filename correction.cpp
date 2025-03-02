@@ -242,7 +242,7 @@ void corrRunMeas(bool open)
           forceRanging = false;
         } else if (state == RangingState::Finished) {
           // finished ranging, restore averaging
-          adSetAveraging(128);
+          adSetMinAveraging(100);
         } else if (state == RangingState::None) {
           // range is ok and readings are available
           if (measToDo-- == 0)

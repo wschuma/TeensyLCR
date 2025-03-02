@@ -11,7 +11,7 @@
 #include "helper.h"
 #include "settings.h"
 
-#if AUDIO_BLOCK_SAMPLES != 1920
+#if AUDIO_BLOCK_SAMPLES != 192
 #error Wrong block size! Edit AudioStream.h.
 #endif
 

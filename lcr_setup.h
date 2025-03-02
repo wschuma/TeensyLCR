@@ -10,7 +10,7 @@ typedef struct lcr_settings_struct {
   uint8_t displMode;
   uint8_t range_mode;
   uint8_t function;
-  uint16_t averaging;
+  uint8_t minAveraging;
 } lcr_settings_t;
 
 extern lcr_settings_t lcrSettings;

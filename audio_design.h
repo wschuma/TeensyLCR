@@ -11,7 +11,6 @@ typedef struct ad_readings_struct {
   float v_mean;
   float i_mean;
   float phase;
-  float phase_raw;
   float v_peak;
   float i_peak;
   uint32_t time;
@@ -25,6 +24,7 @@ typedef struct ad_readings_struct {
 
 extern bool adDataAvailable;
 extern ad_readings_t adReadings;
+extern uint32_t adBlocksToAnalyze;
 
 void adInit();
 void adSetOutputFrequency(float frequency);
@@ -34,8 +34,9 @@ float adHeadroom(float peaklevel);
 void adResetReadings();
 void adAverageReadings();
 float adGetFrequency();
+uint adGetMinAveraging();
 uint adGetAveraging();
-void adSetAveraging(uint avg);
+void adSetMinAveraging(uint avg);
 
 
 #endif

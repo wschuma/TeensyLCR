@@ -45,7 +45,7 @@ void calSaveData()
 void functionCalib()
 {
   // setup
-  adSetAveraging(256);
+  adSetMinAveraging(256);
   tft.useFrameBuffer(false);
   tft.fillScreen(ILI9341_BLACK);
   tft.setFont();

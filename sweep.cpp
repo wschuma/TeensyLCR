@@ -4,6 +4,7 @@
 #include "board.h"
 #include "correction.h"
 #include "displayhelp.h"
+#include "globals.h"
 #include "helper.h"
 #include "lcr_param.h"
 #include "lcr_setup.h"
@@ -11,7 +12,7 @@
 #include "src/utils/osdmessage.h"
 #include "sweep.h"
 
-static const uint8_t SWEEP_DATA_POINTS_COUNT = 30;
+static const uint8_t SWEEP_DATA_POINTS_COUNT = 100;
 
 typedef struct sweep_settings_struct {
   float start;
@@ -22,9 +23,9 @@ typedef struct sweep_settings_struct {
 } sweep_settings_t;
 
 sweep_settings_t sweepSettings = {
-  .start = 100.0,
-  .stop = 90000.0,
-  .logarithmic = false,
+  .start = LCR_MIN_FREQUENCY,
+  .stop = LCR_MAX_FREQUENCY,
+  .logarithmic = true,
   .function = 0,
   .graph = false,
 };
@@ -69,8 +70,8 @@ void setupMeasArray()
     else
       tmp = map(point, 0, SWEEP_DATA_POINTS_COUNT - 1, sweepSettings.start, sweepSettings.stop);
     // rounding
-    tmp = (tmp + 50) / 100;
-    sweepResults.freq[no] = (long)tmp * 100;
+    tmp = (tmp + LCR_FREQ_RESOLUTION / 2) / LCR_FREQ_RESOLUTION;
+    sweepResults.freq[no] = (long)tmp * LCR_FREQ_RESOLUTION;
     // skip equal frequencies
     if (no > 0 && sweepResults.freq[no - 1] == sweepResults.freq[no])
       continue;
@@ -170,9 +171,9 @@ void sweepDrawPage()
   tft.setTextColor(ILI9341_GREEN);
   tft.println(F("START:"));
   tft.println(F("STOP:"));
-  tft.setCursor(160, 0);
+  tft.setCursor(170, 0);
   tft.println(F("SCALE:"));
-  tft.setCursor(160, tft.getCursorY());
+  tft.setCursor(170, tft.getCursorY());
   tft.println();
 
   // draw values
@@ -182,7 +183,7 @@ void sweepDrawPage()
     tft.print(sweepSettings.start, 0);
     tft.println(" Hz");
   } else {
-    tft.print(sweepSettings.start / 1000, 1);
+    tft.print(sweepSettings.start / 1000, 2);
     tft.println(" kHz");
   }
 
@@ -191,13 +192,13 @@ void sweepDrawPage()
     tft.print(sweepSettings.stop, 0);
     tft.println(" Hz");
   } else {
-    tft.print(sweepSettings.stop / 1000, 1);
+    tft.print(sweepSettings.stop / 1000, 2);
     tft.println(" kHz");
   }
 
-  tft.setCursor(235, 0);
+  tft.setCursor(245, 0);
   tft.println(linLogLabelSelection);
-  tft.setCursor(235, tft.getCursorY());
+  tft.setCursor(245, tft.getCursorY());
   tft.println();
 
   drawResultTable();
@@ -290,7 +291,7 @@ void runSweepMeas()
   setupMeasArray();
   resultPage = 0;
   sweepResults.count = 0;
-  uint lcrAveraging = adGetAveraging();
+  uint lcrAveraging = adGetMinAveraging();
   bool forceRanging;
   uint8_t measToDo;
   bool aborted = false;
@@ -329,7 +330,7 @@ void runSweepMeas()
           forceRanging = false;
         } else if (state == RangingState::Finished) {
           // finished ranging, restore averaging
-          adSetAveraging(lcrAveraging);
+          adSetMinAveraging(lcrAveraging);
         } else if (state == RangingState::None) {
           // range is ok and readings are available
           if (measToDo-- == 0)
@@ -372,12 +373,16 @@ void runSweepMeas()
 
 void setStartFreq()
 {
+  uint f;
   tft.fillScreen(ILI9341_BLACK);
   tft.setFont(Arial_14);
   tft.setTextColor(ILI9341_WHITE);
   tft.setCursor(0, 0);
-  tft.println(F("Enter frequency in kHz:"));
-  enterFrequency(&sweepSettings.start, sweepSettings.stop - 100);
+  tft.println("Enter frequency in Hz:");
+  enterNr(&f, LCR_MIN_FREQUENCY, sweepSettings.stop - LCR_FREQ_RESOLUTION);
+  f /= LCR_FREQ_RESOLUTION; // set last digit to 0
+  f *= LCR_FREQ_RESOLUTION;
+  sweepSettings.start = (float)f;
   sweepResults.count = 0;
   
   sweepDrawPage();
@@ -387,12 +392,15 @@ void setStartFreq()
 
 void setStopFreq()
 {
+  uint f;
   tft.fillScreen(ILI9341_BLACK);
   tft.setFont(Arial_14);
   tft.setTextColor(ILI9341_WHITE);
   tft.setCursor(0, 0);
-  tft.println(F("Enter frequency in kHz:"));
-  enterFrequency(&sweepSettings.stop, 90000.0, sweepSettings.start + 100);
+  enterNr(&f, sweepSettings.start + LCR_FREQ_RESOLUTION, LCR_MAX_FREQUENCY);
+  f /= LCR_FREQ_RESOLUTION; // set last digit to 0
+  f *= LCR_FREQ_RESOLUTION;
+  sweepSettings.stop = (float)f;
   sweepResults.count = 0;
   
   sweepDrawPage();

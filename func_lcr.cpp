@@ -105,29 +105,29 @@ void lcrDrawMeasSetup()
   // draw labels
   tft.setFont(Arial_14);
   tft.setTextColor(ILI9341_GREEN);
-  tft.setCursor(6, MEAS_SETUP_LINE1_Y);
+  tft.setCursor(0, MEAS_SETUP_LINE1_Y);
   tft.print("FREQ:");
-  tft.setCursor(6, MEAS_SETUP_LINE2_Y);
+  tft.setCursor(0, MEAS_SETUP_LINE2_Y);
   tft.print("LEVEL:");
-  tft.setCursor(161, MEAS_SETUP_LINE1_Y);
+  tft.setCursor(163, MEAS_SETUP_LINE1_Y);
   tft.print("RANGE:");
   //tft.print("FUNC:");
-  tft.setCursor(161, MEAS_SETUP_LINE2_Y);
+  tft.setCursor(163, MEAS_SETUP_LINE2_Y);
   tft.print("CORR:");
 
   // draw values
   tft.setTextColor(ILI9341_WHITE);
 
-  tft.setCursor(80, MEAS_SETUP_LINE1_Y);
+  tft.setCursor(72, MEAS_SETUP_LINE1_Y);
   if (lcrSettings.frequency < 1000) {
     tft.print(lcrSettings.frequency, 0);
     tft.print(" Hz");
   } else {
-    tft.print(lcrSettings.frequency / 1000, 1);
+    tft.print(lcrSettings.frequency / 1000, 2);
     tft.print(" kHz");
   }
 
-  tft.setCursor(80, MEAS_SETUP_LINE2_Y);
+  tft.setCursor(72, MEAS_SETUP_LINE2_Y);
   tft.print(levelLabels[lcrSettings.amplitudePreset]);
 
   tft.setCursor(244, MEAS_SETUP_LINE1_Y);
@@ -159,7 +159,7 @@ void calc_lcr() {
       return;
     case (RangingState::Finished):
       // finished ranging, restore averaging
-      adSetAveraging(lcrSettings.averaging);
+      adSetMinAveraging(lcrSettings.minAveraging);
       lcrDrawMeasSetup();
       return;
     default:
@@ -203,7 +203,6 @@ void calc_lcr2() {
   tft.setTextSize(2);
   tft.setTextColor(ILI9341_GREEN);
   tft.setCursor(0, 0);
-  tft.println("[ DEBUG DISPLAY ]");
 
   // determain lcr meter range
   bool hold = lcrSettings.range_mode == 1;
@@ -215,7 +214,7 @@ void calc_lcr2() {
       break;
     case (RangingState::Finished):
       // finished ranging, restore averaging
-      adSetAveraging(lcrSettings.averaging);
+      adSetMinAveraging(lcrSettings.minAveraging);
       break;
     default:
       // active range is ok, show results
@@ -251,8 +250,8 @@ void calc_lcr2() {
   tft.print("Phi= ");
   tft.print(phase / PI * 180, 3);
   tft.print(" ");
-  tft.println(adReadings.phase_raw / PI * 180, 3);
-
+  tft.println(adBlocksToAnalyze);
+  
   //tft.print(sci(adReadings.mean2, 3));
   //tft.print(" ");
   //tft.println(sci(adReadings.mean4, 3));
@@ -273,6 +272,8 @@ void calc_lcr2() {
   tft.print(boardSettings.gain_i);
   tft.print(" R:");
   tft.print(boardSettings.range);
+  if (hold)
+    tft.print("H");
 
   if (state == RangingState::Active)
     tft.println(" ranging");
@@ -306,13 +307,13 @@ void lcrSetAveraging()
   tft.setFont(Arial_14);
   tft.setTextColor(ILI9341_WHITE);
   tft.setCursor(0, 0);
-  tft.println("Averaging:");
+  tft.println("Minimum Averaging:");
   uint avg;
-  bool ok = enterNr(&avg, 1, 256);
+  bool ok = enterNr(&avg, 1, 255);
   if (ok)
   {
-    lcrSettings.averaging = avg;
-    adSetAveraging(avg);
+    lcrSettings.minAveraging = avg;
+    adSetMinAveraging(lcrSettings.minAveraging);
     sprintf(avgStr, "%i", avg);
   }
   lcrResetScreen();
@@ -325,18 +326,20 @@ void lcr_select_func()
   lcrResetScreen();
 }
 
-void lcrSetFrequency(float f)
+void lcrSetFrequency(uint f)
 {
   if (f == 0) {
     tft.fillScreen(ILI9341_BLACK);
     tft.setFont(Arial_14);
     tft.setTextColor(ILI9341_WHITE);
     tft.setCursor(0, 0);
-    tft.println("Enter frequency in kHz:");
-    enterFrequency(&f, 90000.0);
+    tft.println("Enter frequency in Hz:");
+    enterNr(&f, LCR_MIN_FREQUENCY, LCR_MAX_FREQUENCY);
+    f /= LCR_FREQ_RESOLUTION; // set last digit to 0
+    f *= LCR_FREQ_RESOLUTION;
   }
   if (f > 0) {
-    lcrSettings.frequency = f;
+    lcrSettings.frequency = (float)f;
     adSetOutputFrequency(lcrSettings.frequency);
     forceRanging = true;
   }
@@ -352,17 +355,17 @@ void lcrShowSelectFreqMenu()
 
 void lcrSetFreq100()
 {
-  lcrSetFrequency(100.0);
+  lcrSetFrequency(100);
 }
 
 void lcrSetFreq1k()
 {
-  lcrSetFrequency(1000.0);
+  lcrSetFrequency(1000);
 }
 
 void lcrSetFreq10k()
 {
-  lcrSetFrequency(10000.0);
+  lcrSetFrequency(10000);
 }
 
 void lcrSetFreqMan()
@@ -401,8 +404,8 @@ void lcrSetRangeMode()
 
 void lcrApplySettings()
 {
-  adSetAveraging(lcrSettings.averaging);
-  sprintf(avgStr, "%i", lcrSettings.averaging);
+  adSetMinAveraging(lcrSettings.minAveraging);
+  sprintf(avgStr, "%i", lcrSettings.minAveraging);
   functionLabelSelection = functionLabels[lcrSettings.function];
   rangeModeLabelSelection = rangeModeLabels[lcrSettings.range_mode];
   displModeLabelSelection = displModeLabels[lcrSettings.displMode];
