@@ -60,5 +60,7 @@ void loadSettings();
 int saveCalibrationData();
 int saveCorrectionData();
 void saveFunction();
+void copyExtToIntEeprom();
+void copyIntToExtEeprom();
 
 #endif

@@ -27,7 +27,11 @@ calFactorInputB_t calInB;
 boardSettings_t boardSettings;
 uint appId;
 
+#ifndef USE_INTERNAL_EEPROM
 I2C_eeprom ee(I2C_ADDR_EEPROM, I2C_DEVICESIZE_24LC64);
+#else
+Int_eeprom ee;
+#endif
 
 void loadCalibrationData();
 void loadCorrectionData();
@@ -370,4 +374,26 @@ void loadFunction()
 #ifdef DBG_VERBOSE
   Serial.println(appId);
 #endif
+}
+
+void copyExtToIntEeprom()
+{
+  const uint BLENGTH = 256;
+  uint8_t data[BLENGTH];
+  ee.readBlock(0, data, BLENGTH);
+  for (uint addr = 0; addr < BLENGTH; addr++)
+  {
+    EEPROM.write(addr, data[addr]);
+  }
+}
+
+void copyIntToExtEeprom()
+{
+  const uint BLENGTH = 96;
+  uint8_t data[BLENGTH];
+  for (uint addr = 0; addr < BLENGTH; addr++)
+  {
+    data[addr] = EEPROM.read(addr);
+  }
+  ee.writeBlock(0, data, BLENGTH);
 }
