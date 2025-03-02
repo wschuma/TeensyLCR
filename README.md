@@ -12,7 +12,7 @@
 
 #### Test Signal
 
-- Selectable test frequencies: 100 Hz to 90 kHz in 100 Hz steps.
+- Selectable test frequencies: 10 Hz to 90 kHz in 10 Hz steps.
 - Selectable test levels: 300 mV, 600 mV, 1 V
 - Output impedance: 100R, 1k, 10k, 100k, depends on LCR range.
 
@@ -42,9 +42,10 @@ B   | Susceptance
 
 #### Measurement Speed
 
-- 100 readings per second; 10 ms per reading (192 kHz sample rate)
-- Moving average of the readings can be set from 1 to 256 to improve performance.
-- Display update rate is fixed at 200 ms
+- Minimum 100 ms per reading
+- Minimum average of the readings can be set from 1 to 255 to improve performance.
+- The effective averaging depends on selected test frequency and may be higher than selected.
+- Display update rate is fixed at 200 ms and may be higher at low frequencies and high averaging value.
 
 #### Accuracy
 
@@ -64,17 +65,17 @@ R, X, \|Z\| | 0.01 mΩ ~ 99.999 MΩ
 G, B, \|Y\| | 0.01 µS ~ TBD
 D           | 0.0001 ~ TBD
 Q           | 0.0001 ~ TBD
-Phi         | -90.000° ~ 90.000°
+Phi         | -180.000° ~ 180.000°
 
 ### Main Functions
 
 #### Correction
 
-The user can perform OPEN and SHORT correction used to eliminate stray admittance, residual impedances and other measurement errors. The correction uses the currently selected test frequency (spot correction).
+The user can perform OPEN and SHORT correction used to eliminate stray admittance, residual impedances and other measurement errors. The OPEN and SHORT function performs open or short correction over 38 pre-set frequencies. The correction for all other frequencies are interpolated from those pre-set frequencies.
 
 #### List Sweep
 
-The sweep function scans the frequency over the component under test with up to 30 points.
+The sweep function scans the frequency over the component under test with up to 100 points.
 It can sweep the frequency linearly or logarithmically. Results are presented in a table.
 If a USB flash drive is connected, the table sweep results are saved as a text file.
 
