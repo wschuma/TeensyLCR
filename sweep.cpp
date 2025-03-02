@@ -295,7 +295,7 @@ void runSweepMeas()
   bool forceRanging;
   uint8_t measToDo;
   bool aborted = false;
-  bool applyCorrection = corr_apply && (corr_data.ts_open > 0 || corr_data.ts_short > 0);
+  bool applyCorrection = lcrSettings.applyCorrection && (corr_data.ts_open > 0 || corr_data.ts_short > 0);
 
   osdMessage.setMessage(F("Measurement in progress..."));
   osdMessage.show();

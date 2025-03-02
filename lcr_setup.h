@@ -11,6 +11,7 @@ typedef struct lcr_settings_struct {
   uint8_t range_mode;
   uint8_t function;
   uint8_t minAveraging;
+  bool applyCorrection;
 } lcr_settings_t;
 
 extern lcr_settings_t lcrSettings;

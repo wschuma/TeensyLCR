@@ -21,7 +21,6 @@ typedef struct corr_data_struct {
 } corr_data_t;
 
 extern corr_data_t corr_data;
-extern bool corr_apply;
 
 void corrApply(float *impedance, float *phase, float frequency);
 void correctionMenu();

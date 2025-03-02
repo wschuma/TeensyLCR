@@ -81,7 +81,7 @@ void lcrDrawFuncIndicators()
 
 void lcrUpdateCorrState()
 {
-  if (corr_apply && (corr_data.ts_open > 0 || corr_data.ts_short > 0))
+  if (lcrSettings.applyCorrection && (corr_data.ts_open > 0 || corr_data.ts_short > 0))
   {
     corrLabelSelection = offOnLabels[1];
     applyCorrection = true;

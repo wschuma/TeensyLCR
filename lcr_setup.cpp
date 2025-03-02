@@ -7,6 +7,7 @@ lcr_settings_t lcrSettings = {
   .range_mode = 0,
   .function = 0,
   .minAveraging = 32,
+  .applyCorrection = false,
 };
 
 lcr_param_t *lcrParams[LCR_FUNC_NUM][2] = {

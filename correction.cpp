@@ -6,11 +6,11 @@
 #include "correction.h"
 #include "displayhelp.h"
 #include "helper.h"
+#include "lcr_setup.h"
 #include "src/utils/btn_bar_menu.h"
 #include "src/utils/osdmessage.h"
 
 corr_data_t corr_data;
-bool corr_apply;
 
 BtnBarMenu menuCorr(&tft);
 
@@ -147,7 +147,7 @@ void corrDrawPage()
     tft.println("N/A");
   }
 
-  if (corr_apply) {
+  if (lcrSettings.applyCorrection) {
     corrApplyLabelSelection = offOnApplyLabels[1];
   } else {
     corrApplyLabelSelection = offOnApplyLabels[0];
@@ -263,7 +263,7 @@ void corrRunMeas(bool open)
       osdMessage.setMessage(F("Error! Terminals not open!"));
       corr_data.ts_open = 0;
       corr_data.ts_short = 0;
-      corr_apply = false;
+      lcrSettings.applyCorrection = false;
       return;
     }
     else if (!open && impedance > SHORT_MEAS_MAX_IMPEDANCE)
@@ -271,7 +271,7 @@ void corrRunMeas(bool open)
       osdMessage.setMessage(F("Error! Terminals not shorted!"));
       corr_data.ts_open = 0;
       corr_data.ts_short = 0;
-      corr_apply = false;
+      lcrSettings.applyCorrection = false;
       return;
     }
 
@@ -292,7 +292,7 @@ void corrRunMeas(bool open)
     osdMessage.setMessage(F("Measurement aborted."));
     corr_data.ts_open = 0;
     corr_data.ts_short = 0;
-    corr_apply = false;
+    lcrSettings.applyCorrection = false;
     return;
   }
 
@@ -327,8 +327,8 @@ void corrToggleApply()
 {
   if (corr_data.ts_open == 0 && corr_data.ts_short == 0)
     return;
-  corr_apply = !corr_apply;
-  if (corr_apply) {
+  lcrSettings.applyCorrection = !lcrSettings.applyCorrection;
+  if (lcrSettings.applyCorrection) {
     corrApplyLabelSelection = offOnApplyLabels[1];
   } else {
     corrApplyLabelSelection = offOnApplyLabels[0];
