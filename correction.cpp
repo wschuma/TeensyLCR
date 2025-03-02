@@ -7,6 +7,7 @@
 #include "displayhelp.h"
 #include "helper.h"
 #include "lcr_setup.h"
+#include "settings.h"
 #include "src/utils/btn_bar_menu.h"
 #include "src/utils/osdmessage.h"
 
@@ -303,6 +304,9 @@ void corrRunMeas(bool open)
   } else {
     corr_data.ts_short = now();
   }
+
+  // save correction data to eeprom
+  saveCorrectionData();
 }
 
 void corrRunOpenMeas()

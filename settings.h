@@ -58,6 +58,7 @@ extern calFactorInputB_t calInB;
 void initSettings();
 void loadSettings();
 int saveCalibrationData();
+int saveCorrectionData();
 void saveFunction();
 
 #endif

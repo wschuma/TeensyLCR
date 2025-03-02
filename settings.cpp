@@ -1,7 +1,10 @@
 #include <Arduino.h>
-#include "settings.h"
+#include "correction.h"
+#include <EEPROM.h>
 #include "globals.h"
 #include "I2C_eeprom.h"
+#include "settings.h"
+#include "src/utils/EEPROMext.h"
 
 
 #define SETTINGS_ID                   1773021235
@@ -10,7 +13,8 @@
 #define EEPROM_ID                     0   // 4 bytes
 #define EEPROM_VERSION                4   // 1 byte
 #define EEPROM_FUNCTION               10  // 1 byte
-#define EEPROM_CALIBRATION            16
+#define EEPROM_CALIBRATION            16  // calFactorOutput_t = 12 bytes, calFactorInputA_t = 24 bytes, calFactorInputB_t = 36 bytes; 72 bytes
+#define EEPROM_CORRECTION             1024
 
 const uint gain_v_presets[] = {PGA_GAIN_1, PGA_GAIN_5, PGA_GAIN_25, PGA_GAIN_100};
 const uint gain_i_presets[] = {PGA_GAIN_1, PGA_GAIN_5, PGA_GAIN_25, PGA_GAIN_100};
@@ -23,9 +27,10 @@ calFactorInputB_t calInB;
 boardSettings_t boardSettings;
 uint appId;
 
-I2C_eeprom ee(I2C_ADDR_EEPROM, I2C_DEVICESIZE_24LC02);
+I2C_eeprom ee(I2C_ADDR_EEPROM, I2C_DEVICESIZE_24LC64);
 
 void loadCalibrationData();
+void loadCorrectionData();
 void loadFunction();
 
 /*
@@ -63,6 +68,10 @@ void initSettings()
   calInB.gainFactor[2] = 3.984e-2;
   calInB.gainFactor[3] = 9.96e-3;
 
+  // init correction data
+  corr_data.ts_open = 0;
+  corr_data.ts_short = 0;
+
   appId = 0;
 }
 
@@ -77,10 +86,18 @@ void initEeprom()
 
   tft.println("Initialize EEPROM...");
   
+  if (!ee.isConnected())
+  {
+    Serial.println("ERROR: Can't find EEPROM.");
+    return;
+  }
+
+  delay(5);
   // write id
   uint32_t sid = SETTINGS_ID;
   ee.writeBlock(EEPROM_SETTINGS_OFFSET + EEPROM_ID, (uint8_t *) &sid, 4);
   ee.writeByte(EEPROM_SETTINGS_OFFSET + EEPROM_VERSION, SETTINGS_VERSION);
+  Serial.println(status);
 
   // write settings
   saveCalibrationData();
@@ -108,13 +125,13 @@ void loadSettings()
   }
 
   // EEPROM check
-  union ArrayToInteger {
-    byte array[4];
-    uint32_t integer;
-  };
-  ArrayToInteger id;
-  ee.readBlock(EEPROM_SETTINGS_OFFSET + EEPROM_ID, (uint8_t *) &id.array, 4);
-  if (id.integer != SETTINGS_ID)
+  uint32_t id;
+  int status = ee.readBlock(EEPROM_SETTINGS_OFFSET + EEPROM_ID, (uint8_t *) &id, 4);
+#ifdef DBG_VERBOSE
+  Serial.println(status);
+  Serial.println(id);
+#endif
+  if (id != SETTINGS_ID)
   {
     tft.println("EEPROM not initialized");
     Serial.println("EEPROM not initialized");
@@ -124,6 +141,7 @@ void loadSettings()
 
   loadFunction();
   loadCalibrationData();
+  loadCorrectionData();
 }
 
 int saveCalibrationData()
@@ -186,6 +204,85 @@ int saveCalibrationData()
   return status;
 }
 
+int saveCorrectionData()
+{
+#ifdef DBG_VERBOSE
+  Serial.println("saveCorrectionData");
+#endif
+
+  uint addr = EEPROM_SETTINGS_OFFSET + EEPROM_CORRECTION;
+  int status;
+  
+  if (!ee.isConnected())
+  {
+    Serial.println("ERROR: Can't find EEPROM.");
+    return -1;
+  }
+
+  delay(5);
+  while (1)
+  {
+    // save time stamps
+    status = ee.writeBlock(addr, (uint8_t *) &corr_data.ts_open, sizeof(int));
+    if (status != 0)
+      break;
+    addr += sizeof(int);
+    delay(5);
+    status = ee.writeBlock(addr, (uint8_t *) &corr_data.ts_short, sizeof(int));
+    if (status != 0)
+      break;
+    addr += sizeof(int);
+
+    // save values
+    float val[2];
+    for (uint8_t point = 0; point < CORR_FREQ_COUNT; point++)
+    {
+      delay(5);
+      val[0] = corr_data.z0[point].real();
+      val[1] = corr_data.z0[point].imag();
+      status = ee.writeBlock(addr, (uint8_t *) &val, sizeof(val));
+      addr += sizeof(val);
+      if (status != 0)
+        break;
+    }
+    if (status != 0)
+      break;
+    for (uint8_t point = 0; point < CORR_FREQ_COUNT; point++)
+    {
+      delay(5);
+      val[0] = corr_data.zs[point].real();
+      val[1] = corr_data.zs[point].imag();
+      status = ee.writeBlock(addr, (uint8_t *) &val, sizeof(val));
+      addr += sizeof(val);
+      if (status != 0)
+        break;
+    }
+    if (status != 0)
+      break;
+    for (uint8_t point = 0; point < CORR_FREQ_COUNT; point++)
+    {
+      delay(5);
+      val[0] = corr_data.zp[point].real();
+      val[1] = corr_data.zp[point].imag();
+      status = ee.writeBlock(addr, (uint8_t *) &val, sizeof(val));
+      addr += sizeof(val);
+      if (status != 0)
+        break;
+    }
+    break;
+  }
+
+  if (status != 0)
+  {
+    Serial.println("Error saving data to EEPROM.");
+    Serial.print("status = 0x");
+    Serial.println(status, HEX);
+    Serial.print("addr = 0x");
+    Serial.println(addr, HEX);
+  }
+  return status;
+}
+
 void loadCalibrationData()
 {
 #ifdef DBG_VERBOSE
@@ -204,6 +301,52 @@ void loadCalibrationData()
   ee.readBlock(addr, (uint8_t *) &calInB, sizeof(calInB));
   addr += sizeof(calInB);
   ee.readBlock(addr, (uint8_t *) &calOutA, sizeof(calOutA));
+}
+
+void loadCorrectionData()
+{
+#ifdef DBG_VERBOSE
+  Serial.println("loadCorrectionData");
+#endif
+
+  uint addr = EEPROM_SETTINGS_OFFSET + EEPROM_CORRECTION;
+  // read time stamps
+  uint16_t bytes = ee.readBlock(addr, (uint8_t *) &corr_data.ts_open, 4);
+  addr += 4;
+  bytes += ee.readBlock(addr, (uint8_t *) &corr_data.ts_short, 4);
+  addr += 4;
+
+  // reset timestamp if nothing is stored yet
+  if (corr_data.ts_open == (uint16_t)-1)
+    corr_data.ts_open = 0;
+  if (corr_data.ts_short == (uint16_t)-1)
+    corr_data.ts_short = 0;
+
+  // read values
+  float buffer[CORR_FREQ_COUNT][2];
+  bytes += ee.readBlock(addr, (uint8_t *) &buffer, sizeof(buffer));
+  addr += sizeof(buffer);
+  for (uint8_t point = 0; point < CORR_FREQ_COUNT; point++)
+  {
+    corr_data.z0[point].set(buffer[point][0], buffer[point][1]);
+  }
+  bytes += ee.readBlock(addr, (uint8_t *) &buffer, sizeof(buffer));
+  addr += sizeof(buffer);
+  for (uint8_t point = 0; point < CORR_FREQ_COUNT; point++)
+  {
+    corr_data.zs[point].set(buffer[point][0], buffer[point][1]);
+  }
+  bytes += ee.readBlock(addr, (uint8_t *) &buffer, sizeof(buffer));
+  for (uint8_t point = 0; point < CORR_FREQ_COUNT; point++)
+  {
+    corr_data.zp[point].set(buffer[point][0], buffer[point][1]);
+  }
+
+
+#ifdef DBG_VERBOSE
+  Serial.print(bytes);
+  Serial.println(" bytes loaded.");
+#endif
 }
 
 void saveFunction()
