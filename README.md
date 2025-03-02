@@ -71,7 +71,7 @@ Phi         | -180.000° ~ 180.000°
 
 #### Correction
 
-The user can perform OPEN and SHORT correction used to eliminate stray admittance, residual impedances and other measurement errors. The OPEN and SHORT function performs open or short correction over 38 pre-set frequencies. The correction for all other frequencies are interpolated from those pre-set frequencies.
+The user can perform OPEN and SHORT correction used to eliminate stray admittance, residual impedances and other measurement errors. The OPEN and SHORT function performs open or short correction over 38 pre-set frequencies. The correction for all other frequencies are interpolated from those pre-set frequencies. The correction data is stored permanently on the EEPROM.
 
 #### List Sweep
 
