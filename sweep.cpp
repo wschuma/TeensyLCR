@@ -373,17 +373,19 @@ void runSweepMeas()
 
 void setStartFreq()
 {
-  uint f;
   tft.fillScreen(ILI9341_BLACK);
   tft.setFont(Arial_14);
   tft.setTextColor(ILI9341_WHITE);
   tft.setCursor(0, 0);
-  tft.println("Enter frequency in Hz:");
-  enterNr(&f, LCR_MIN_FREQUENCY, sweepSettings.stop - LCR_FREQ_RESOLUTION);
-  f /= LCR_FREQ_RESOLUTION; // set last digit to 0
-  f *= LCR_FREQ_RESOLUTION;
-  sweepSettings.start = (float)f;
-  sweepResults.count = 0;
+  tft.println("Enter start frequency:");
+  float f = enterFrequency(LCR_MIN_FREQUENCY, sweepSettings.stop - LCR_FREQ_RESOLUTION);
+  f = f / LCR_FREQ_RESOLUTION; // set last digit to 0
+  f = (uint)round(f) * LCR_FREQ_RESOLUTION;
+  if (f > 0)
+  {
+    sweepSettings.start = f;
+    sweepResults.count = 0;
+  }
   
   sweepDrawPage();
   sweepMenu.draw();
@@ -392,16 +394,19 @@ void setStartFreq()
 
 void setStopFreq()
 {
-  uint f;
   tft.fillScreen(ILI9341_BLACK);
   tft.setFont(Arial_14);
   tft.setTextColor(ILI9341_WHITE);
   tft.setCursor(0, 0);
-  enterNr(&f, sweepSettings.start + LCR_FREQ_RESOLUTION, LCR_MAX_FREQUENCY);
-  f /= LCR_FREQ_RESOLUTION; // set last digit to 0
-  f *= LCR_FREQ_RESOLUTION;
-  sweepSettings.stop = (float)f;
-  sweepResults.count = 0;
+  tft.println("Enter stop frequency:");
+  float f = enterFrequency(sweepSettings.start + LCR_FREQ_RESOLUTION, LCR_MAX_FREQUENCY);
+  f = f / LCR_FREQ_RESOLUTION; // set last digit to 0
+  f = (uint)round(f) * LCR_FREQ_RESOLUTION;
+  if (f > 0)
+  {
+    sweepSettings.start = f;
+    sweepResults.count = 0;
+  }
   
   sweepDrawPage();
   sweepMenu.draw();

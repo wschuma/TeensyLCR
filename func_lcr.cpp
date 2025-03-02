@@ -326,17 +326,17 @@ void lcr_select_func()
   lcrResetScreen();
 }
 
-void lcrSetFrequency(uint f)
+void lcrSetFrequency(float f)
 {
   if (f == 0) {
     tft.fillScreen(ILI9341_BLACK);
     tft.setFont(Arial_14);
     tft.setTextColor(ILI9341_WHITE);
     tft.setCursor(0, 0);
-    tft.println("Enter frequency in Hz:");
-    enterNr(&f, LCR_MIN_FREQUENCY, LCR_MAX_FREQUENCY);
-    f /= LCR_FREQ_RESOLUTION; // set last digit to 0
-    f *= LCR_FREQ_RESOLUTION;
+    tft.println("Enter frequency:");
+    f = enterFrequency(LCR_MIN_FREQUENCY, LCR_MAX_FREQUENCY);
+    f = f / LCR_FREQ_RESOLUTION; // set last digit to 0
+    f = (uint)round(f) * LCR_FREQ_RESOLUTION;
   }
   if (f > 0) {
     lcrSettings.frequency = (float)f;

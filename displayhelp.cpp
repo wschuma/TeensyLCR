@@ -474,62 +474,73 @@ float enterFloat(uint maxDigits, bool volt)
     return 0;
 }
 
-bool enterFrequency(float* f, float max, float min)
+float enterFrequency(float min, float max)
 {
-  uint charsLeft = 3;
-  float val = 0.0;
+  uint charsLeft = 5;
+  String inp = "";
   char key = 0;
-  
+  uint8_t btn;
+  float f;
+
   BtnBarMenu menu(&tft);
-  int btn, menuBtnOk, menuBtnCancel;
+  int menuBtnCancel, menuBtnHz, menuBtnKHz;
   menu.init(btn_feedback);
-  menuBtnOk = menu.add("OK");
   menuBtnCancel = menu.add("Cancel");
+  menuBtnHz = menu.add("Hz");
+  menuBtnKHz = menu.add("kHz");
   menu.draw();
 
-  drawInputField(val);
-
+  drawInputField("");
   TS_Point p;
   while(1)
   {
     updateParamLimitMsg(false);
 
     key = keypad.getKey();
-    if (key == 'D' && val > 0.1) {
-      // delete char
-      val = int(val) / 10.0;
-      charsLeft++;
-      drawInputField(val);
-    }
-    else if ((int(key) >= 48) && (int(key) <= 57)) { 
-      // add digit
-      if (!charsLeft)
+    if (key)
+    {
+      if (key == '.') {
+        // add period
+        if (inp.indexOf('.') < 0) {
+          inp += '.';
+          drawInputField(inp);
+        }
         continue;
-      charsLeft--;
-      val = val * 10 + float(key - 48) / 10.0;
-      drawInputField(val);
-    }
-
-    if (encButton.update() && encButton.risingEdge()) {
-      if (checkFloat(val * 1000, min, max)) {
-        break;
+      }
+      if (key == 'D') {
+        // delete char
+        if (inp.length()) {
+          if (inp.indexOf('.', inp.length() - 1) < 0)
+            charsLeft++;
+          inp.remove(inp.length() - 1);
+          drawInputField(inp);
+        }
+        continue;
+      }
+      if ((int(key) >= 48) && (int(key) <= 57)) { 
+        // add digit
+        if (!charsLeft)
+          continue;
+        inp += key;
+        drawInputField(inp);
+        charsLeft--;
       }
     }
 
     if (!getTouchPoint(&p))
       continue;
     btn = menu.processTSPoint(p);
-    if (btn == menuBtnOk) {
-      if (checkFloat(val * 1000, min, max)) {
-        break;
-      }
-    } else if (btn == menuBtnCancel) {
-      return false;
-    }
+    if (btn == menuBtnHz) {
+      f = inp.toFloat();
+      if (inp.length() && checkFloat(f, min, max))
+        return f;
+    } else if (btn == menuBtnKHz) {
+      f = inp.toFloat() * 1000;
+      if (inp.length() && checkFloat(f, min, max))
+        return f;
+    } else if (btn == menuBtnCancel)
+      return 0;
   }
-  
-  *f = val * 1000;
-  return true;
 }
 
 bool enterTime(int* hr, int* min)
