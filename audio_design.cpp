@@ -43,7 +43,7 @@ AudioConnection          patchCord9(audioInI2S1, 1, multiply4, 1);
 AudioConnection          patchCord10(audioInI2S1, 1, peakI, 0);
 AudioConnection          patchCord11(squarewave_90, 0, multiply4, 0);
 AudioConnection          patchCord12(squarewave_90, 0, multiply2, 0);
-AudioConnection          patchCord13(squarewave_90, analyzeMeanI);
+AudioConnection          patchCord13(audioInI2S1, 1, analyzeMeanI, 0);
 AudioConnection          patchCord14(squarewave, 0, multiply1, 0);
 AudioConnection          patchCord15(squarewave, 0, multiply3, 0);
 AudioConnection          patchCord16(multiply1, mean1);
