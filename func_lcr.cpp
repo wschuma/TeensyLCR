@@ -437,9 +437,6 @@ void lcrHandleButtons() {
       boardSetLCRRange(++boardSettings.range % LCR_RANGE_NUM);
       adResetReadings();
       break;
-    case '0':
-      printCalData();
-      break;
     default:
       break;
   }
