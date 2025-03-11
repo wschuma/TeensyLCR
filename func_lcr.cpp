@@ -12,7 +12,6 @@
 #include <ili9341_t3n_font_Arial.h>
 #include "lcr_param.h"
 #include "lcr_setup.h"
-#include "MathHelpers.h"
 #include "settings.h"
 #include "src/utils/btn_bar_menu.h"
 #include "sweep.h"
@@ -41,26 +40,7 @@ bool applyCorrection = false;
 
 char avgStr[6];
 
-void printCalData() {
-  Serial.println("calOutA");
-  Serial.println(sci(calOutA.transmissionFactor, 6));
-  Serial.println(sci(calOutA.gainFactor, 6));
-  Serial.println("calInA");
-  Serial.println(sci(calInA.transmissionFactor, 6));
-  Serial.println(sci(calInA.gainFactor[0], 6));
-  Serial.println(sci(calInA.gainFactor[1], 6));
-  Serial.println(sci(calInA.gainFactor[2], 6));
-  Serial.println(sci(calInA.gainFactor[3], 6));
-  Serial.println("calInB");
-  Serial.println(sci(calInB.transmissionFactor[0], 6));
-  Serial.println(sci(calInB.transmissionFactor[1], 6));
-  Serial.println(sci(calInB.transmissionFactor[2], 6));
-  Serial.println(sci(calInB.transmissionFactor[3], 6));
-  Serial.println(sci(calInB.gainFactor[0], 6));
-  Serial.println(sci(calInB.gainFactor[1], 6));
-  Serial.println(sci(calInB.gainFactor[2], 6));
-  Serial.println(sci(calInB.gainFactor[3], 6));
-}
+File waveFile;
 
 void lcrDrawFuncIndicators()
 {
@@ -230,41 +210,33 @@ void calc_lcr2() {
   if (applyCorrection)
     corrApply(&impedance, &phase, lcrSettings.frequency);
 
+  char buf[25];
   tft.print("h V= ");
   tft.print(adHeadroom(adReadings.v_peak));
   tft.print("dB I= ");
   tft.print(adHeadroom(adReadings.i_peak));
   tft.println("dB");
+
+  sprintf(buf, "V rms= %+E", adReadings.v_rms);
+  tft.println(buf);
+  sprintf(buf, "I rms= %+E", adReadings.i_rms);
+  tft.println(buf);
+  sprintf(buf, "V mean= %+E", adReadings.v_mean);
+  tft.println(buf);
+  sprintf(buf, "I mean= %+E", adReadings.i_mean);
+  tft.println(buf);
   
-  tft.print("V rms= ");
-  tft.println(adReadings.v_rms, 6);
-  //tft.print("I rms= ");
-  //tft.println(sci(adReadings.i_rms, 6));
-  tft.print("V mean= ");
-  tft.println(sci(adReadings.v_mean, 6));
-  tft.print("I mean= ");
-  tft.println(sci(adReadings.i_mean, 6));
-  
-  tft.print("Z= ");
-  tft.println(sci(impedance, 6));
+  sprintf(buf, "Z= %+E", impedance);
+  tft.println(buf);
   tft.print("Phi= ");
-  tft.print(phase / PI * 180, 3);
+  tft.println(phase / PI * 180, 3);
+  
+  sprintf(buf, "Rs= %+E", z.real());
+  tft.println(buf);
+  
+  tft.print(adBlocksToAnalyze);
   tft.print(" ");
-  tft.println(adBlocksToAnalyze);
-  
-  //tft.print(sci(adReadings.mean2, 3));
-  //tft.print(" ");
-  //tft.println(sci(adReadings.mean4, 3));
-  //tft.print(sci(adReadings.mean1, 3));
-  //tft.print(" ");
-  //tft.println(sci(adReadings.mean3, 3));
-  
-  //tft.print(adReadings.a1 / PI * 180, 3);
-  //tft.print("   ");
-  //tft.println(adReadings.a2 / PI * 180, 3);
-  
-  tft.print("Rs= ");
-  tft.println(sci(z.modulus(), 6));
+  tft.println(adGetAveraging());
   
   tft.print("Gv:");
   tft.print(boardSettings.gain_v);
