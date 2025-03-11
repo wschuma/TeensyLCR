@@ -148,12 +148,12 @@ void adResetReadings()
  */
 void adAverageReadings()
 {
-  static uint analyzedBlocks = 0;
+  uint32_t analyzedBlocks = mean1.available();
 
-  if (!(mean1.available() && mean2.available() && mean3.available() && mean4.available() && analyzeRmsV.available() && analyzeRmsI.available() && analyzeMeanI.available()))
+  if (analyzedBlocks > adBlocksToAnalyze)
   {
-    // no data available
-    return;
+    // Collected more data than expected. Discard all.
+    adDiscardResults = true;
   }
 
   if (adDiscardResults)
@@ -169,14 +169,9 @@ void adAverageReadings()
     mean2.read();
     mean3.read();
     mean4.read();
-    analyzedBlocks = 0;
     adDiscardResults = false;
     return;
   }
-
-  // Next audio block is available.
-  analyzedBlocks++;
-  adReadings.i_mean = analyzeMeanI.read() * calInB.transmissionFactor[boardSettings.range] * calInB.gainFactor[boardSettings.gain_i];
 
   if (analyzedBlocks < adBlocksToAnalyze)
   {
@@ -190,6 +185,7 @@ void adAverageReadings()
   adReadings.v_rms = analyzeRmsV.read() * calInA.transmissionFactor * calInA.gainFactor[boardSettings.gain_v];
   adReadings.i_rms = analyzeRmsI.read() * calInB.transmissionFactor[boardSettings.range] * calInB.gainFactor[boardSettings.gain_i];
   adReadings.v_mean = analyzeMeanV.read() * calInA.transmissionFactor * calInA.gainFactor[boardSettings.gain_v];
+  adReadings.i_mean = analyzeMeanI.read() * calInB.transmissionFactor[boardSettings.range] * calInB.gainFactor[boardSettings.gain_i];
   adReadings.mean1 = mean1.read();
   adReadings.mean2 = mean2.read();
   adReadings.mean3 = mean3.read();
@@ -197,7 +193,6 @@ void adAverageReadings()
   adReadings.a1 = atan2(adReadings.mean2, adReadings.mean1);
   adReadings.a2 = atan2(adReadings.mean4, adReadings.mean3);
   adReadings.phase = adReadings.a1 - adReadings.a2;
-  analyzedBlocks = 0;
   adDataAvailable = true;
 }
 

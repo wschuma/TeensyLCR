@@ -16,8 +16,8 @@ public:
 		accum = 0;
 		count = 0;
 	}
-	bool available(void) {
-		return count > 0;
+	uint32_t available(void) {
+		return count;
 	}
 	float read(void);
 	virtual void update(void);
