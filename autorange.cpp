@@ -170,7 +170,7 @@ RangingState autoRange(bool holdRange, bool force)
   {
     // started ranging
     rangingActive = true;
-    adSetMinAveraging(32);
+    adSetMinAveraging(10);
     return RangingState::Started;
   }
   if (rangingActive && ranging)
