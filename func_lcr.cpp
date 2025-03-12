@@ -25,6 +25,7 @@ bool forceRanging = false;
 // Menu definition
 BtnBarMenu lcrMenu(&tft);
 BtnBarMenu lcrSetFreqMenu(&tft);
+BtnBarMenu lcrSetLevelMenu(&tft);
 
 const char *functionLabelSelection;
 
@@ -108,7 +109,8 @@ void lcrDrawMeasSetup()
   }
 
   tft.setCursor(72, MEAS_SETUP_LINE2_Y);
-  tft.print(levelLabels[lcrSettings.amplitudePreset]);
+  tft.print(lcrSettings.level, 3);
+  tft.print(" V");
 
   tft.setCursor(244, MEAS_SETUP_LINE1_Y);
   //tft.print(functionLabels[lcrSettings.function]);
@@ -259,6 +261,8 @@ void lcrDrawMenu()
     appSelectMenu.draw();
   else if (activeMenu == LCR_SET_FREQUENCY)
     lcrSetFreqMenu.draw();
+  else if (activeMenu == LCR_SET_LEVEL)
+    lcrSetLevelMenu.draw();
   
   osdMessage.show();
   tft.updateScreen();
@@ -311,7 +315,7 @@ void lcrSetFrequency(float f)
     f = (uint)round(f) * LCR_FREQ_RESOLUTION;
   }
   if (f > 0) {
-    lcrSettings.frequency = (float)f;
+    lcrSettings.frequency = f;
     adSetOutputFrequency(lcrSettings.frequency);
     forceRanging = true;
   }
@@ -345,13 +349,51 @@ void lcrSetFreqMan()
   lcrSetFrequency(0);
 }
 
-void lcrSetAmplitude()
+void lcrSetLevel(float level)
 {
-  lcrSettings.amplitudePreset = ++lcrSettings.amplitudePreset % AMPLITUDE_PRESETS_NUM;
-  adSetOutputAmplitude(amplitudePresets[lcrSettings.amplitudePreset] * sqrtf(2));
-  forceRanging = true;
-  lcrDrawMeasSetup();
+  if (level == 0) {
+    tft.fillScreen(ILI9341_BLACK);
+    tft.setFont(Arial_14);
+    tft.setTextColor(ILI9341_WHITE);
+    tft.setCursor(0, 0);
+    tft.println("Enter output level:");
+    level = enterVoltage(LCR_MIN_LEVEL, LCR_MAX_LEVEL);
+    level = level / LCR_LEVEL_RESOLUTION;
+    level = (uint)round(level) * LCR_LEVEL_RESOLUTION;
+  }
+  if (level > 0) {
+    lcrSettings.level = level;
+    adSetOutputAmplitude(level * sqrtf(2));
+    forceRanging = true;
+  }
+  activeMenu = APP_DEFAULT;
+  lcrResetScreen();
+}
+
+void lcrShowSelectLevelMenu()
+{
+  activeMenu = LCR_SET_LEVEL;
   lcrDrawMenu();
+}
+
+void lcrSetLevel300()
+{
+  lcrSetLevel(0.3);
+}
+
+void lcrSetLevel600()
+{
+  lcrSetLevel(0.6);
+}
+
+void lcrSetLevel1()
+{
+  lcrSetLevel(1.0);
+}
+
+void lcrSetLevelMan()
+{
+  lcrSetLevel(0);
 }
 
 void lcrSetDisplayMode()
@@ -383,7 +425,7 @@ void lcrApplySettings()
   displModeLabelSelection = displModeLabels[lcrSettings.displMode];
   lcrUpdateCorrState();
 
-  adSetOutputAmplitude(amplitudePresets[lcrSettings.amplitudePreset] * sqrtf(2));
+  adSetOutputAmplitude(lcrSettings.level * sqrtf(2));
   adSetOutputOffset(0);
 
   adSetOutputFrequency(lcrSettings.frequency);
@@ -463,6 +505,9 @@ bool lcrHandleTouch()
   else if (activeMenu == LCR_SET_FREQUENCY) {
     lcrSetFreqMenu.processTSPoint(p);
   }
+  else if (activeMenu == LCR_SET_LEVEL) {
+    lcrSetLevelMenu.processTSPoint(p);
+  }
   return false;
 }
 
@@ -476,7 +521,7 @@ void lcrApplication()
   
   lcrMenu.init(btn_feedback, "LCR Menu");
   lcrMenu.add("Freq.", lcrShowSelectFreqMenu);
-  lcrMenu.add("Level", lcrSetAmplitude);
+  lcrMenu.add("Level", lcrShowSelectLevelMenu);
   lcrMenu.add("Function", &functionLabelSelection, lcr_select_func);
   lcrMenu.add("Range", &rangeModeLabelSelection, lcrSetRangeMode);
   lcrMenu.add("Corr.", lcrCorrectionMenu);
@@ -489,6 +534,12 @@ void lcrApplication()
   lcrSetFreqMenu.add("1kHz", lcrSetFreq1k);
   lcrSetFreqMenu.add("10kHz", lcrSetFreq10k);
   lcrSetFreqMenu.add("Manuell", lcrSetFreqMan);
+
+  lcrSetLevelMenu.init(btn_feedback, "Set Level");
+  lcrSetLevelMenu.add("300 mV", lcrSetLevel300);
+  lcrSetLevelMenu.add("600 mV", lcrSetLevel600);
+  lcrSetLevelMenu.add("1 V", lcrSetLevel1);
+  lcrSetLevelMenu.add("Manuell", lcrSetLevelMan);
 
   lcrResetScreen();
   

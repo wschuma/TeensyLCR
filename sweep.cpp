@@ -255,7 +255,7 @@ void saveSweepDataToFile()
   f.print(F("Scale:\t"));
   f.println(linLogLabelSelection);
   f.print(F("Level:\t"));
-  f.print(amplitudePresets[lcrSettings.amplitudePreset], 1);
+  f.print(lcrSettings.level, 3);
   f.println("\tV");
   f.print(F("No.\tFrequency\t"));
   f.print(lcrParams[lcrSettings.function][0]->label);

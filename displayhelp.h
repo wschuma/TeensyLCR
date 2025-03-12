@@ -28,6 +28,7 @@ bool enterNr(uint* val, int min, int max);
 float enterFloat(uint maxDigits, bool volt);
 bool enterFloat(float* val, float min, float max);
 float enterFrequency(float min, float max);
+float enterVoltage(float min, float max);
 bool enterTime(int* hr, int* min);
 bool enterDate(int* day, int* month, int* yr);
 void getDisplValue(float v, uint digits, int resolution, disp_val_t* out);

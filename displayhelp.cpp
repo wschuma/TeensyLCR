@@ -543,6 +543,75 @@ float enterFrequency(float min, float max)
   }
 }
 
+float enterVoltage(float min, float max)
+{
+  uint charsLeft = 5;
+  String inp = "";
+  char key = 0;
+  uint8_t btn;
+  float f;
+
+  BtnBarMenu menu(&tft);
+  int menuBtnCancel, menuBtnmVrms, menuBtnVrms;
+  menu.init(btn_feedback);
+  menuBtnCancel = menu.add("Cancel");
+  menuBtnmVrms = menu.add("mVrms");
+  menuBtnVrms = menu.add("Vrms");
+  menu.draw();
+
+  drawInputField("");
+  TS_Point p;
+  while(1)
+  {
+    updateParamLimitMsg(false);
+
+    key = keypad.getKey();
+    if (key)
+    {
+      if (key == '.') {
+        // add period
+        if (inp.indexOf('.') < 0) {
+          inp += '.';
+          drawInputField(inp);
+        }
+        continue;
+      }
+      if (key == 'D') {
+        // delete char
+        if (inp.length()) {
+          if (inp.indexOf('.', inp.length() - 1) < 0)
+            charsLeft++;
+          inp.remove(inp.length() - 1);
+          drawInputField(inp);
+        }
+        continue;
+      }
+      if ((int(key) >= 48) && (int(key) <= 57)) { 
+        // add digit
+        if (!charsLeft)
+          continue;
+        inp += key;
+        drawInputField(inp);
+        charsLeft--;
+      }
+    }
+
+    if (!getTouchPoint(&p))
+      continue;
+    btn = menu.processTSPoint(p);
+    if (btn == menuBtnVrms) {
+      f = inp.toFloat();
+      if (inp.length() && checkFloat(f, min, max))
+        return f;
+    } else if (btn == menuBtnmVrms) {
+      f = inp.toFloat() / 1000;
+      if (inp.length() && checkFloat(f, min, max))
+        return f;
+    } else if (btn == menuBtnCancel)
+      return 0;
+  }
+}
+
 bool enterTime(int* hr, int* min)
 {
   int cursor = 0;

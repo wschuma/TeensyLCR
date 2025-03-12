@@ -2,7 +2,7 @@
 
 lcr_settings_t lcrSettings = {
   .frequency = 1000,
-  .amplitudePreset = 2,
+  .level = 1,
   .displMode = 0,
   .range_mode = 0,
   .function = 0,
@@ -34,5 +34,3 @@ const char *functionLabels[LCR_FUNC_NUM] = {
   "Rs-Q",  "Rp-Q", "R-X",   "Z-Phi",
   "Z-D",   "Z-Q", "G-B"
 };
-
-const char *levelLabels[AMPLITUDE_PRESETS_NUM] = {"300 mV", "600 mV", "1 V"};
