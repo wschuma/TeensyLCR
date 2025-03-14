@@ -474,20 +474,34 @@ float enterFloat(uint maxDigits, bool volt)
     return 0;
 }
 
-float enterFrequency(float min, float max)
+bool enterFloat(float *val, float min, float max, const char *unit, int unitPrefix, bool showCancel)
 {
-  uint charsLeft = 5;
+  uint charsLeft = 7;
   String inp = "";
   char key = 0;
-  uint8_t btn;
+  int btn;
   float f;
 
   BtnBarMenu menu(&tft);
-  int menuBtnCancel, menuBtnHz, menuBtnKHz;
   menu.init(btn_feedback);
-  menuBtnCancel = menu.add("Cancel");
-  menuBtnHz = menu.add("Hz");
-  menuBtnKHz = menu.add("kHz");
+  int menuBtnCancel = 0, menuBtnEnterMilli = 0, menuBtnEnter = 0, menuBtnEnterKilo = 0;
+  char displUnit[8];
+  if (showCancel) {
+    menuBtnCancel = menu.add("Cancel");
+  }
+  if (unitPrefix & UNIT_PREFIX_MILLI) {
+    strcpy(displUnit, "m");
+    strcat(displUnit, unit);
+    menuBtnEnterMilli = menu.add(displUnit);
+  }
+  if (unitPrefix & UNIT_PREFIX_NONE) {
+    menuBtnEnter = menu.add(unit);
+  }
+  if (unitPrefix & UNIT_PREFIX_KILO) {
+    strcpy(displUnit, "k");
+    strcat(displUnit, unit);
+    menuBtnEnterKilo = menu.add(displUnit);
+  }
   menu.draw();
 
   drawInputField("");
@@ -530,86 +544,85 @@ float enterFrequency(float min, float max)
     if (!getTouchPoint(&p))
       continue;
     btn = menu.processTSPoint(p);
-    if (btn == menuBtnHz) {
+    if (showCancel && btn == menuBtnCancel) {
+      return false;
+    } else if (unitPrefix & UNIT_PREFIX_NONE && btn == menuBtnEnter) {
       f = inp.toFloat();
-      if (inp.length() && checkFloat(f, min, max))
-        return f;
-    } else if (btn == menuBtnKHz) {
+      if (inp.length() && checkFloat(f, min, max)) {
+        *val = f;
+        return true;
+      }
+    } else if (unitPrefix & UNIT_PREFIX_MILLI && btn == menuBtnEnterMilli) {
+      f = inp.toFloat() / 1000;
+      if (inp.length() && checkFloat(f, min, max)) {
+        *val = f;
+        return true;
+      }
+    } else if (unitPrefix & UNIT_PREFIX_KILO && btn == menuBtnEnterKilo) {
       f = inp.toFloat() * 1000;
-      if (inp.length() && checkFloat(f, min, max))
-        return f;
-    } else if (btn == menuBtnCancel)
-      return 0;
+      if (inp.length() && checkFloat(f, min, max)) {
+        *val = f;
+        return true;
+      }
+    }
   }
+}
+
+/*
+ * Show input window for entering floating point values. Supports cancellation.
+ * Returns true, if value has enterd. Returns false if user pressed Cancel.
+ */
+bool enterFloat(float* val, float min, float max, const char *unit, int unitPrefix)
+{
+  return enterFloat(val, min, max, unit, unitPrefix, true);
+}
+
+/*
+ * Show input window for entering floating point values.
+ * Returns the entered value.
+ */
+float enterFloat(float min, float max, const char *unit, int unitPrefix)
+{
+  float val;
+  enterFloat(&val, min, max, unit, unitPrefix, false);
+  return val;
+}
+
+float enterFrequency(float min, float max, const char *title)
+{
+  tft.fillScreen(ILI9341_BLACK);
+  tft.setFont(Arial_14);
+  tft.setTextColor(ILI9341_WHITE);
+  tft.setCursor(0, 0);
+  tft.println(title);
+
+  float f = 0;
+  enterFloat(&f, min, max, "Hz", UNIT_PREFIX_NONE | UNIT_PREFIX_KILO);
+  return f;
 }
 
 float enterVoltage(float min, float max)
 {
-  uint charsLeft = 5;
-  String inp = "";
-  char key = 0;
-  uint8_t btn;
-  float f;
+  tft.fillScreen(ILI9341_BLACK);
+  tft.setFont(Arial_14);
+  tft.setTextColor(ILI9341_WHITE);
+  tft.setCursor(0, 0);
+  tft.println("Enter output level:");
 
-  BtnBarMenu menu(&tft);
-  int menuBtnCancel, menuBtnmVrms, menuBtnVrms;
-  menu.init(btn_feedback);
-  menuBtnCancel = menu.add("Cancel");
-  menuBtnmVrms = menu.add("mVrms");
-  menuBtnVrms = menu.add("Vrms");
-  menu.draw();
+  float v = 0;
+  enterFloat(&v, min, max, "Vrms", UNIT_PREFIX_MILLI | UNIT_PREFIX_NONE);
+  return v;
+}
 
-  drawInputField("");
-  TS_Point p;
-  while(1)
-  {
-    updateParamLimitMsg(false);
+bool enterOffset(float *val, float min, float max)
+{
+  tft.fillScreen(ILI9341_BLACK);
+  tft.setFont(Arial_14);
+  tft.setTextColor(ILI9341_WHITE);
+  tft.setCursor(0, 0);
+  tft.println("Enter output offset:");
 
-    key = keypad.getKey();
-    if (key)
-    {
-      if (key == '.') {
-        // add period
-        if (inp.indexOf('.') < 0) {
-          inp += '.';
-          drawInputField(inp);
-        }
-        continue;
-      }
-      if (key == 'D') {
-        // delete char
-        if (inp.length()) {
-          if (inp.indexOf('.', inp.length() - 1) < 0)
-            charsLeft++;
-          inp.remove(inp.length() - 1);
-          drawInputField(inp);
-        }
-        continue;
-      }
-      if ((int(key) >= 48) && (int(key) <= 57)) { 
-        // add digit
-        if (!charsLeft)
-          continue;
-        inp += key;
-        drawInputField(inp);
-        charsLeft--;
-      }
-    }
-
-    if (!getTouchPoint(&p))
-      continue;
-    btn = menu.processTSPoint(p);
-    if (btn == menuBtnVrms) {
-      f = inp.toFloat();
-      if (inp.length() && checkFloat(f, min, max))
-        return f;
-    } else if (btn == menuBtnmVrms) {
-      f = inp.toFloat() / 1000;
-      if (inp.length() && checkFloat(f, min, max))
-        return f;
-    } else if (btn == menuBtnCancel)
-      return 0;
-  }
+  return enterFloat(val, min, max, "V", UNIT_PREFIX_MILLI | UNIT_PREFIX_NONE);
 }
 
 bool enterTime(int* hr, int* min)

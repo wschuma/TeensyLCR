@@ -373,12 +373,7 @@ void runSweepMeas()
 
 void setStartFreq()
 {
-  tft.fillScreen(ILI9341_BLACK);
-  tft.setFont(Arial_14);
-  tft.setTextColor(ILI9341_WHITE);
-  tft.setCursor(0, 0);
-  tft.println("Enter start frequency:");
-  float f = enterFrequency(LCR_MIN_FREQUENCY, sweepSettings.stop - LCR_FREQ_RESOLUTION);
+  float f = enterFrequency(LCR_MIN_FREQUENCY, sweepSettings.stop - LCR_FREQ_RESOLUTION, "Enter start frequency:");
   f = f / LCR_FREQ_RESOLUTION; // set last digit to 0
   f = (uint)round(f) * LCR_FREQ_RESOLUTION;
   if (f > 0)
@@ -394,12 +389,7 @@ void setStartFreq()
 
 void setStopFreq()
 {
-  tft.fillScreen(ILI9341_BLACK);
-  tft.setFont(Arial_14);
-  tft.setTextColor(ILI9341_WHITE);
-  tft.setCursor(0, 0);
-  tft.println("Enter stop frequency:");
-  float f = enterFrequency(sweepSettings.start + LCR_FREQ_RESOLUTION, LCR_MAX_FREQUENCY);
+  float f = enterFrequency(sweepSettings.start + LCR_FREQ_RESOLUTION, LCR_MAX_FREQUENCY, "Enter stop frequency:");
   f = f / LCR_FREQ_RESOLUTION; // set last digit to 0
   f = (uint)round(f) * LCR_FREQ_RESOLUTION;
   if (f > 0)

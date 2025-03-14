@@ -67,25 +67,19 @@ void setFrequency()
 {
   static const float F_MIN = 1.0;
   static const float F_MAX = AUDIO_SAMPLE_RATE_EXACT / 2;
-  tft.fillScreen(ILI9341_BLACK);
-  tft.setFont();
-  tft.setTextSize(2);
-  tft.setTextColor(ILI9341_GREEN);
-  tft.setCursor(0, 0);
-  tft.println("Enter frequency (Hz):");
-  float val;
-  bool ok = enterFloat(&val, F_MIN, F_MAX);
+
+  float f = enterFrequency(F_MIN, F_MAX, "Enter frequency:");
+  if (f > 0) {
+    frequency = f;
+    adSetOutputFrequency(frequency);
+  }
+
   tft.fillScreen(ILI9341_BLACK);
   tft.setFont();
   tft.setTextSize(2);
   tft.setTextColor(ILI9341_GREEN);
   tft.setCursor(0, 0);
 
-  if (ok)
-  {
-    frequency = val;
-    adSetOutputFrequency(frequency);
-  }
   displayValues();
 }
 
@@ -93,24 +87,20 @@ void setAmplitude()
 {
   static const float L_MIN = 1.0e-3;
   static const float L_MAX = 2.4;
-  tft.fillScreen(ILI9341_BLACK);
-  tft.setFont();
-  tft.setTextSize(2);
-  tft.setTextColor(ILI9341_GREEN);
-  tft.setCursor(0, 0);
-  tft.println("Enter output amplitude:");
-  float inp = enterFloat(6, true);
+
+  float level = enterVoltage(L_MIN, L_MAX);
+  if (level > 0) {
+    amplitude = level;
+    if (outputOn)
+      adSetOutputAmplitude(amplitude);
+  }
+
   tft.fillScreen(ILI9341_BLACK);
   tft.setFont();
   tft.setTextSize(2);
   tft.setTextColor(ILI9341_GREEN);
   tft.setCursor(0, 0);
 
-  if (inp >= L_MIN && inp <= L_MAX) {
-    amplitude = inp;
-    if (outputOn)
-      adSetOutputAmplitude(amplitude);
-  }
   displayValues();
 }
 
@@ -118,24 +108,20 @@ void setOffset()
 {
   static const float O_MIN = -1.0;
   static const float O_MAX = 1.0;
-  tft.fillScreen(ILI9341_BLACK);
-  tft.setFont();
-  tft.setTextSize(2);
-  tft.setTextColor(ILI9341_GREEN);
-  tft.setCursor(0, 0);
-  tft.println("Enter output offset (V):");
-  float inp = enterFloat(6, false);
+
+  float inp;
+  if (enterOffset(&inp, O_MIN, O_MAX)) {
+    offset = inp;
+    if (outputOn)
+      adSetOutputOffset(offset);
+  }
+
   tft.fillScreen(ILI9341_BLACK);
   tft.setFont();
   tft.setTextSize(2);
   tft.setTextColor(ILI9341_GREEN);
   tft.setCursor(0, 0);
 
-  if (inp >= O_MIN && inp <= O_MAX) {
-    offset = inp;
-    if (outputOn)
-      adSetOutputOffset(offset);
-  }
   displayValues();
 }
 

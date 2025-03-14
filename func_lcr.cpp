@@ -305,12 +305,7 @@ void lcr_select_func()
 void lcrSetFrequency(float f)
 {
   if (f == 0) {
-    tft.fillScreen(ILI9341_BLACK);
-    tft.setFont(Arial_14);
-    tft.setTextColor(ILI9341_WHITE);
-    tft.setCursor(0, 0);
-    tft.println("Enter frequency:");
-    f = enterFrequency(LCR_MIN_FREQUENCY, LCR_MAX_FREQUENCY);
+    f = enterFrequency(LCR_MIN_FREQUENCY, LCR_MAX_FREQUENCY, "Enter frequency:");
     f = f / LCR_FREQ_RESOLUTION; // set last digit to 0
     f = (uint)round(f) * LCR_FREQ_RESOLUTION;
   }
@@ -352,11 +347,6 @@ void lcrSetFreqMan()
 void lcrSetLevel(float level)
 {
   if (level == 0) {
-    tft.fillScreen(ILI9341_BLACK);
-    tft.setFont(Arial_14);
-    tft.setTextColor(ILI9341_WHITE);
-    tft.setCursor(0, 0);
-    tft.println("Enter output level:");
     level = enterVoltage(LCR_MIN_LEVEL, LCR_MAX_LEVEL);
     level = level / LCR_LEVEL_RESOLUTION;
     level = (uint)round(level) * LCR_LEVEL_RESOLUTION;
