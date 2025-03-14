@@ -404,7 +404,7 @@ void setStopFreq()
   f = (uint)round(f) * LCR_FREQ_RESOLUTION;
   if (f > 0)
   {
-    sweepSettings.start = f;
+    sweepSettings.stop = f;
     sweepResults.count = 0;
   }
   
