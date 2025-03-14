@@ -170,6 +170,7 @@ void adAverageReadings()
     mean3.read();
     mean4.read();
     adDiscardResults = false;
+    adDataAvailable = false;
     return;
   }
 
