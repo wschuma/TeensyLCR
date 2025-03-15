@@ -3,6 +3,7 @@
 #include "src/audio/analyze_mean.h"
 #include "src/audio/control_cs4272_192k.h"
 
+#include "calibration.h"
 #include "settings.h"
 
 #include <Audio.h>

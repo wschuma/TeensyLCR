@@ -7,6 +7,35 @@
 #include <ili9341_t3n_font_Arial.h>
 #include "settings.h"
 
+calFactorOutput_t calOutA;
+calFactorInputA_t calInA;
+calFactorInputB_t calInB;
+
+// init calibration data
+void calInit()
+{
+  calOutA.offset = 0;
+  calOutA.transmissionFactor = 0.4; // 1/V
+  calOutA.gainFactor = 1.087;
+  
+  calInA.offset = 0;
+  calInA.transmissionFactor = 2.5; // V/1
+  calInA.gainFactor[0] = 1.079;
+  calInA.gainFactor[1] = 0.1923;
+  calInA.gainFactor[2] = 3.984e-2;
+  calInA.gainFactor[3] = 9.96e-3;
+  
+  calInB.offset = 0;
+  calInB.transmissionFactor[0] = 2.5e-2; // A/1
+  calInB.transmissionFactor[1] = 2.5e-3;
+  calInB.transmissionFactor[2] = 2.5e-4;
+  calInB.transmissionFactor[3] = 2.5e-5;
+  calInB.gainFactor[0] = 1.0;
+  calInB.gainFactor[1] = 0.1923;
+  calInB.gainFactor[2] = 3.984e-2;
+  calInB.gainFactor[3] = 9.96e-3;
+}
+
 void calClearScreen()
 {
   tft.fillScreen(ILI9341_BLACK);

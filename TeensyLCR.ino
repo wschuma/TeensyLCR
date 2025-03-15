@@ -44,6 +44,7 @@ void setup() {
 
   tft.println("init settings");
   initSettings();
+  calInit();
   loadSettings();
 
   tft.println("init audio");
