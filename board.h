@@ -51,9 +51,9 @@
 #define LCR_RANGE_NUM   4
 
 #define PGA_GAIN_1      0
-#define PGA_GAIN_5      2
-#define PGA_GAIN_25     3
-#define PGA_GAIN_100    1
+#define PGA_GAIN_5      1
+#define PGA_GAIN_25     2
+#define PGA_GAIN_100    3
 #define PGA_GAIN_NUM    4
 
 // define I2C adresses
@@ -61,6 +61,40 @@
 #define I2C_ADDR_EEPROM     0x50
 #define I2C_ADDR_CODEC      0x10
 
+
+class Board {
+public:
+  Board(void) {
+    _gain_v = 0;
+    _gain_i = 0;
+    _range = 0;
+  };
+  void init();
+  uint getLCRRange() { return _range; };
+  uint getPGAGainI() { return _gain_i; };
+  uint getPGAGainV() { return _gain_v; };
+  void setLCRRange(uint range);
+  void setPGAGainI(uint gain);
+  void setPGAGainV(uint gain);
+  void increaseIGain() {
+    setPGAGainI(_gain_i + 1);
+  };
+  void reduceIGain() {
+    setPGAGainI(_gain_i - 1);
+  };
+  void increaseVGain() {
+    setPGAGainV(_gain_v + 1);
+  };
+  void reduceVGain() {
+    setPGAGainV(_gain_v - 1);
+  };
+  bool selftest();
+private:
+  uint _gain_v;
+  uint _gain_i;
+  uint _range;
+  bool isI2CDeviceConnected(int address);
+};
 
 extern Encoder encoder;
 extern Generic_LM75 temperature;
@@ -70,19 +104,8 @@ extern XPT2046_Touchscreen ts;
 extern OSDMessage osdMessage;
 extern Keypad keypad;
 extern Bounce encButton;
+extern Board board;
 
-extern elapsedMillis blink;
-
-void boardInit();
-bool boardSelftest();
-void boardSetLCRRange();
-void boardSetLCRRange(uint rangePreset);
-void boardSetPGAGainV();
-void boardSetPGAGainV(uint gainPreset);
-void boardSetPGAGainI();
-void boardSetPGAGainI(uint gainPreset);
 void btn_feedback();
-void boardBlinkStatusLed();
-
 
 #endif

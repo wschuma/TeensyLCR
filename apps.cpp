@@ -2,6 +2,7 @@
 #include "func_lcr.h"
 #include "func_generator.h"
 #include "func_dvm.h"
+#include "board.h"
 
 
 BtnBarMenu appSelectMenu(&tft);

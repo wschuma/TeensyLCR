@@ -3,6 +3,7 @@
 #include "src/audio/analyze_mean.h"
 #include "src/audio/control_cs4272_192k.h"
 
+#include "board.h"
 #include "calibration.h"
 #include "settings.h"
 
@@ -184,10 +185,10 @@ void adAverageReadings()
   // Enough analyzed data is avaliable. Get readings...
   adReadings.v_peak = peakV.read();
   adReadings.i_peak = peakI.read();
-  adReadings.v_rms = analyzeRmsV.read() * calInA.transmissionFactor * calInA.gainFactor[boardSettings.gain_v];
-  adReadings.i_rms = analyzeRmsI.read() * calInB.transmissionFactor[boardSettings.range] * calInB.gainFactor[boardSettings.gain_i];
-  adReadings.v_mean = analyzeMeanV.read() * calInA.transmissionFactor * calInA.gainFactor[boardSettings.gain_v];
-  adReadings.i_mean = analyzeMeanI.read() * calInB.transmissionFactor[boardSettings.range] * calInB.gainFactor[boardSettings.gain_i];
+  adReadings.v_rms = analyzeRmsV.read() * calInA.transmissionFactor * calInA.gainFactor[board.getPGAGainV()];
+  adReadings.i_rms = analyzeRmsI.read() * calInB.transmissionFactor[board.getLCRRange()] * calInB.gainFactor[board.getPGAGainI()];
+  adReadings.v_mean = analyzeMeanV.read() * calInA.transmissionFactor * calInA.gainFactor[board.getPGAGainV()];
+  adReadings.i_mean = analyzeMeanI.read() * calInB.transmissionFactor[board.getLCRRange()] * calInB.gainFactor[board.getPGAGainI()];
   adReadings.mean1 = mean1.read();
   adReadings.mean2 = mean2.read();
   adReadings.mean3 = mean3.read();

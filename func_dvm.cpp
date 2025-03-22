@@ -37,7 +37,7 @@ void functionDvm()
   // setup
   static const uint DISPLAY_UPDATE_RATE_MIN = 200;  // ms
   
-  boardSetPGAGainV(PGA_GAIN_1);
+  board.setPGAGainV(PGA_GAIN_1);
   //setOutputAmplitude(0);
   adSetOutputOffset(0);
   dvmDisplay();

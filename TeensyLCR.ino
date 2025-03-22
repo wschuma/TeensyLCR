@@ -17,7 +17,7 @@
 
 void setup() {
   Serial.begin(9600);
-  boardInit();
+  board.init();
   
   tft.useFrameBuffer(0);
   tft.fillScreen(ILI9341_BLACK);
@@ -32,7 +32,7 @@ void setup() {
   tft.print("Teesyduino ");
   tft.println(TEENSYDUINO);
   tft.println("run selftest");
-  bool ok = boardSelftest();
+  bool ok = board.selftest();
   if (!ok) {
     String msg = "selftest failed. system halted.";
     tft.println(msg);

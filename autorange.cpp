@@ -35,28 +35,28 @@ bool autoRangeVI()
   float hdrExp = getHeadroomExp();
   
   // check headroom
-  if (v_headroom < (LCR_MINIMUM_HEADROOM_V + hdrExp) && boardSettings.gain_v > 0)
+  if (v_headroom < (LCR_MINIMUM_HEADROOM_V + hdrExp) && board.getPGAGainV() > 0)
   {
     // reduce voltage gain
-    boardSetPGAGainV(--boardSettings.gain_v);
+    board.reduceVGain();
     active = true;
   }
-  else if (v_headroom > (LCR_HEADROOM_RANGE_V + hdrExp) && boardSettings.gain_v < 3)
+  else if (v_headroom > (LCR_HEADROOM_RANGE_V + hdrExp) && board.getPGAGainV() < 3)
   {
     // increase voltage gain
-    boardSetPGAGainV(++boardSettings.gain_v);
+    board.increaseVGain();
     active = true;
   }
-  if (i_headroom < (LCR_MINIMUM_HEADROOM_I + hdrExp) && boardSettings.gain_i > 0)
+  if (i_headroom < (LCR_MINIMUM_HEADROOM_I + hdrExp) && board.getPGAGainI() > 0)
   {
     // reduce current gain
-    boardSetPGAGainI(--boardSettings.gain_i);
+    board.reduceIGain();
     active = true;
   }
-  else if (i_headroom > (LCR_HEADROOM_RANGE_I + hdrExp) && boardSettings.gain_i < 3)
+  else if (i_headroom > (LCR_HEADROOM_RANGE_I + hdrExp) && board.getPGAGainI() < 3)
   {
     // increase current gain
-    boardSetPGAGainI(++boardSettings.gain_i);
+    board.increaseIGain();
     active = true;
   }
 
@@ -75,9 +75,9 @@ bool autoRangeZ()
   // check range with hysteresis
   if (z < 450)
   {
-    if (boardSettings.range != 0)
+    if (board.getLCRRange() != LCR_RANGE_100)
     {
-      boardSetLCRRange(0);
+      board.setLCRRange(LCR_RANGE_100);
       return true;
     }
     else
@@ -85,19 +85,19 @@ bool autoRangeZ()
   }
   else if (z < 550)
   {
-    if (boardSettings.range <= 1)
+    if (board.getLCRRange() <= LCR_RANGE_1K)
       return false;
     else
     {
-      boardSetLCRRange(0);
+      board.setLCRRange(LCR_RANGE_100);
       return true;
     }
   }
   else if (z < 4500)
   {
-    if (boardSettings.range != 1)
+    if (board.getLCRRange() != LCR_RANGE_1K)
     {
-      boardSetLCRRange(1);
+      board.setLCRRange(LCR_RANGE_1K);
       return true;
     }
     else
@@ -105,19 +105,19 @@ bool autoRangeZ()
   }
   else if (z < 5500)
   {
-    if(boardSettings.range == 1 || boardSettings.range == 2)
+    if(board.getLCRRange() == LCR_RANGE_1K || board.getLCRRange() == LCR_RANGE_10K)
       return false;
     else
     {
-      boardSetLCRRange(1);
+      board.setLCRRange(LCR_RANGE_1K);
       return true;
     }
   }
   else if (z < 45000)
   {
-    if (boardSettings.range != 2)
+    if (board.getLCRRange() != LCR_RANGE_10K)
     {
-      boardSetLCRRange(2);
+      board.setLCRRange(LCR_RANGE_10K);
       return true;
     }
     else
@@ -125,28 +125,28 @@ bool autoRangeZ()
   }
   else if (z < 55000)
   {
-    if (boardSettings.range >= 2)
+    if (board.getLCRRange() >= LCR_RANGE_10K)
       return false;
     else
     {
-      boardSetLCRRange(2);
+      board.setLCRRange(LCR_RANGE_10K);
       return true;
     }
   }
   else
     if (f > 11000)
     {
-      if (boardSettings.range != 2)
+      if (board.getLCRRange() != LCR_RANGE_10K)
       {
-        boardSetLCRRange(2);
+        board.setLCRRange(LCR_RANGE_10K);
         return true;
       }
     }
     else
     {
-      if (boardSettings.range != 3)
+      if (board.getLCRRange() != LCR_RANGE_100K)
       {
-        boardSetLCRRange(3);
+        board.setLCRRange(LCR_RANGE_100K);
         return true;
       }
     }

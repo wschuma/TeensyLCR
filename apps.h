@@ -3,7 +3,6 @@
 
 #include <Arduino.h>
 #include "src/utils/btn_bar_menu.h"
-#include "board.h"
 
 enum menu_item: int
 {

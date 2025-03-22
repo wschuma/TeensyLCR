@@ -1,4 +1,5 @@
 #include <Arduino.h>
+#include "board.h"
 #include "calibration.h"
 #include "correction.h"
 #include <EEPROM.h>
@@ -17,11 +18,7 @@
 #define EEPROM_CALIBRATION            16  // calFactorOutput_t = 12 bytes, calFactorInputA_t = 24 bytes, calFactorInputB_t = 36 bytes; 72 bytes
 #define EEPROM_CORRECTION             1024
 
-const uint gain_v_presets[] = {PGA_GAIN_1, PGA_GAIN_5, PGA_GAIN_25, PGA_GAIN_100};
-const uint gain_i_presets[] = {PGA_GAIN_1, PGA_GAIN_5, PGA_GAIN_25, PGA_GAIN_100};
-const uint range_presets[] = {LCR_RANGE_100, LCR_RANGE_1K, LCR_RANGE_10K, LCR_RANGE_100K};
 
-boardSettings_t boardSettings;
 uint appId;
 
 #ifndef USE_INTERNAL_EEPROM
@@ -42,10 +39,6 @@ void initSettings()
 #ifdef DBG_VERBOSE
   Serial.println("initSettings");
 #endif
-
-  boardSettings.gain_v = 0;
-  boardSettings.gain_i = 0;
-  boardSettings.range = 0;
 
   // init correction data
   corr_data.ts_open = 0;

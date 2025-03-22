@@ -1,5 +1,6 @@
 #include "displayhelp.h"
 #include <Arduino.h>
+#include "board.h"
 #include <ili9341_t3n_font_Arial.h>
 #include "src/utils/btn_bar_menu.h"
 

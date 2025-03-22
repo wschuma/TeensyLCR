@@ -1,13 +1,13 @@
 #include <Arduino.h>
 #include "board.h"
-#include "Wire.h"
 #include "globals.h"
-#include "settings.h"
 #include <TimeLib.h>
+#include "Wire.h"
 
 
 Encoder encoder(ENCODER_PINB, ENCODER_PINA);
 Bounce encButton = Bounce(ENCODER_PINSW, 5);
+Board board;
 
 // The Generic_LM75 class will provide 9-bit (±0.5°C) temperature for any
 // LM75-derived sensor. More specific classes may provide better resolution.
@@ -32,15 +32,13 @@ byte rowPins[ROWS] = {KEYPAD_PIN1, KEYPAD_PIN2, KEYPAD_PIN3, KEYPAD_PIN4}; //con
 byte colPins[COLS] = {KEYPAD_PIN5, KEYPAD_PIN6, KEYPAD_PIN7, KEYPAD_PIN8}; //connect to the column pinouts of the keypad
 Keypad keypad = Keypad( makeKeymap(keys), rowPins, colPins, ROWS, COLS );
 
-elapsedMillis blink;
-
-bool isI2CDeviceConnected(int address)
+bool Board::isI2CDeviceConnected(int address)
 {
   Wire.beginTransmission(address);
   return (Wire.endTransmission() == 0);
 }
 
-bool boardSelftest() {
+bool Board::selftest() {
   bool result = true;
   Wire.begin();
   
@@ -81,7 +79,7 @@ time_t getTeensyTime()
   return Teensy3Clock.get();
 }
 
-void boardInit() {
+void Board::init() {
   // init digital pins
   pinMode(STATUS_LED_PIN, OUTPUT);
   pinMode(DISP_BACKLIGHT_PIN, OUTPUT);
@@ -116,46 +114,24 @@ void boardInit() {
   setSyncProvider(getTeensyTime);
 }
 
-void setLCRRangePins(int range) {
-  digitalWrite(RANGE_SEL_A_PIN, range & 0x1);
-  digitalWrite(RANGE_SEL_B_PIN, range & 0x2);
+void Board::setLCRRange(uint range) {
+  _range = range & 0x3;
+  digitalWrite(RANGE_SEL_A_PIN, _range & 0x1);
+  digitalWrite(RANGE_SEL_B_PIN, _range & 0x2);
 };
 
-void setPGAGainVPins(int gain) {
-  digitalWrite(PGA_V_A_PIN, gain & 0x1);
-  digitalWrite(PGA_V_B_PIN, gain & 0x2);
-}
-
-void setPGAGainIPins(int gain) {
-  digitalWrite(PGA_I_A_PIN, gain & 0x1);
-  digitalWrite(PGA_I_B_PIN, gain & 0x2);
-}
-
-void boardSetLCRRange() {
-  setLCRRangePins(range_presets[boardSettings.range]);
+void Board::setPGAGainV(uint gain) {
+  _gain_v = gain & 0x3;
+  static const uint8_t lut_v[] = {0, 2, 3, 1};
+  digitalWrite(PGA_V_A_PIN, lut_v[_gain_v] & 0x1);
+  digitalWrite(PGA_V_B_PIN, lut_v[_gain_v] & 0x2);
 };
 
-void boardSetLCRRange(uint rangePreset) {
-  boardSettings.range = rangePreset;
-  setLCRRangePins(range_presets[boardSettings.range]);
-};
-
-void boardSetPGAGainV() {
-  setPGAGainVPins(gain_v_presets[boardSettings.gain_v]);
-};
-
-void boardSetPGAGainV(uint gainPreset) {
-  boardSettings.gain_v = gainPreset;
-  setPGAGainVPins(gain_v_presets[boardSettings.gain_v]);
-};
-
-void boardSetPGAGainI() {
-  setPGAGainIPins(gain_i_presets[boardSettings.gain_i]);
-};
-
-void boardSetPGAGainI(uint gainPreset) {
-  boardSettings.gain_i = gainPreset;
-  setPGAGainIPins(gain_i_presets[boardSettings.gain_i]);
+void Board::setPGAGainI(uint gain) {
+  _gain_i = gain & 0x3;
+  static const uint8_t lut_i[] = {0, 2, 3, 1};
+  digitalWrite(PGA_I_A_PIN, lut_i[_gain_i] & 0x1);
+  digitalWrite(PGA_I_B_PIN, lut_i[_gain_i] & 0x2);
 };
 
 void btn_feedback()
@@ -165,14 +141,6 @@ void btn_feedback()
   digitalWrite(STATUS_LED_PIN, LOW);
 }
 
-void boardBlinkStatusLed()
-{
-  if (blink >= 1000)
-  {
-    blink = 0;
-    digitalWrite(STATUS_LED_PIN, !digitalRead(STATUS_LED_PIN));
-  }
-}
 /*
 bool encoderUpdate()
 {

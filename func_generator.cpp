@@ -158,7 +158,7 @@ void generatorApplication()
   adSetOutputAmplitude(0);
   adSetOutputOffset(0);
   adSetOutputFrequency(frequency);
-  boardSetLCRRange(0);
+  board.setLCRRange(LCR_RANGE_100);
   waveOpt = waves[0];
   
   genMenu.init(btn_feedback, "FG Menu");

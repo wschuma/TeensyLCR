@@ -115,7 +115,7 @@ void lcrDrawMeasSetup()
   tft.setCursor(244, MEAS_SETUP_LINE1_Y);
   //tft.print(functionLabels[lcrSettings.function]);
   tft.print("[");
-  tft.print(boardSettings.range);
+  tft.print(board.getLCRRange());
   tft.print("] ");
   tft.print(rangeModeLabels[lcrSettings.range_mode]);
 
@@ -241,11 +241,11 @@ void calc_lcr2() {
   tft.println(adGetAveraging());
   
   tft.print("Gv:");
-  tft.print(boardSettings.gain_v);
+  tft.print(board.getPGAGainV());
   tft.print(" Gi:");
-  tft.print(boardSettings.gain_i);
+  tft.print(board.getPGAGainI());
   tft.print(" R:");
-  tft.print(boardSettings.range);
+  tft.print(board.getLCRRange());
   if (hold)
     tft.print("H");
 
@@ -458,15 +458,15 @@ void lcrHandleButtons() {
       saveScreenshot(&tft);
       break;
     case 'L':
-      boardSetPGAGainV(++boardSettings.gain_v % PGA_GAIN_NUM);
+      board.increaseVGain();
       adResetReadings();
       break;
     case 'R':
-      boardSetPGAGainI(++boardSettings.gain_i % PGA_GAIN_NUM);
+      board.increaseIGain();
       adResetReadings();
       break;
     case 'C':
-      boardSetLCRRange(++boardSettings.range % LCR_RANGE_NUM);
+      board.setLCRRange((board.getLCRRange() + 1) % LCR_RANGE_NUM);
       adResetReadings();
       break;
     default:
