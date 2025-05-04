@@ -13,8 +13,10 @@
 #### Test Signal
 
 - Selectable test frequencies: 10 Hz to 90 kHz in 10 Hz steps.
-- Selectable test levels: 300 mV, 600 mV, 1 V
-- Output impedance: 100R, 1k, 10k, 100k, depends on LCR range.
+- Output voltage level: 30 mV - 2.5 Vrms; 1 mV resolution
+- Output impedance *: 100R, 1k, 10k, 100k, depends on LCR range.
+
+(*) The range multiplexer has an impedance of about 30 Ohms, which must be added to the output impedance.
 
 #### Measurement Parameters
 
@@ -98,7 +100,7 @@ Save screenshots (BMP format) to USB thump drive:
 - Frequency: 1Hz - 90kHz
 - Amplitude: 1mVp - 2.4Vp
 - Offset: 0 - 1V
-- about 100R output impedance
+- about 130R output impedance
 
 ### Volt Meter
 
