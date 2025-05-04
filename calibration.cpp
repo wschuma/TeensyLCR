@@ -333,11 +333,22 @@ void calInputI()
     char buf[25];
     sprintf(buf, "%E", current);
     tft.println(buf);
+    // show headroom
+    float hdrV = adHeadroom(adReadings.v_peak);
+    float hdrI = adHeadroom(adReadings.i_peak);
     tft.print("h V= ");
-    tft.print(adHeadroom(adReadings.v_peak));
+    tft.print(hdrV);
     tft.print("dB I= ");
-    tft.print(adHeadroom(adReadings.i_peak));
+    tft.print(hdrI);
     tft.println("dB");
+    // sanity check
+    if (hdrV < 0.5 || hdrV > 16 || hdrI < 0.5 || hdrI > 14)
+    {
+      tft.println("Headroom out of range!");
+      waitForUser();
+      return;
+    }
+    // save values
     if (calSetups[preset].calRange)
     {
       calInB.transmissionFactor[board.getLCRRange()] = current / adReadings.i_rms;
