@@ -180,13 +180,15 @@ void calInputV()
   typedef struct cal_setup_struct {
     uint range;
     float level;
+    uint calr;
   } cal_setup_t;
   cal_setup_t calSetups[] = {
-    { 0, 1.0 },
-    { 0, 1.3 },
-    { 1, 1.1 },
-    { 2, 3.2 },
+    { 0, 2.2, 0 },
+    { 3, 1.0, 100 },
+    { 3, 1.0, 1000 },
+    { 3, 2.2, 10000 },
   };
+  const float rParallel = 110030.0; // series resistance of mux, 100k range resistor and 10k resistor between HCUR & HPOT
 
   // board setup
   board.setLCRRange(LCR_RANGE_100);
@@ -200,7 +202,6 @@ void calInputV()
   calClearScreen();
   tft.println("[ ADJUST VOLTAGE INPUT ]");
   tft.println("Connect 4 wire test leads.");
-  tft.println("Connect AC voltmeter to sense wires.");
   waitForUser();
   
   // calibrate voltage gain
@@ -216,11 +217,15 @@ void calInputV()
     tft.print("Adjust PGA V gain ");
     tft.println(preset);
     if (preset > 0) {
-      tft.println("Connect 100R resistor.");
+      tft.println("Connect calibration cable.")
+      tft.print("Use ");
+      tft.print(calSetups[preset].calr);
+      tft.println("R cal resistor.");
     }
-    tft.println("Enter measured AC voltage:");
-    float vRef = enterFloat(0.005, 2, "Vrms", UNIT_PREFIX_MILLI | UNIT_PREFIX_NONE);
-
+    waitForUser();
+    float ra = calSetups[preset].calr * rParallel / (calSetups[preset].calr + rParallel);
+    float rb = 100.0; // calibration cable resistor between HPOT & LPOT
+    float vRef = calSetups[preset].level * rb / (ra + rb);
     // take readings
     calClearScreen();
     tft.println("measure...");
@@ -266,13 +271,13 @@ void calInputI()
     bool calRange;
   } cal_setup_t;
   cal_setup_t calSetups[] = {
-    { 0, 0, 90.0, 110.0, 3.2, false },
+    { 0, 0, 90.0, 110.0, 1.4, false },
     { 0, 1, 560.0, 650.0, 3, false },
     { 0, 2, 2690.0, 3100.0, 2.8, false },
-    { 1, 0, 990.0, 1100.0, 3, true },
-    { 2, 0, 9900.0, 11000.0, 3, true },
-    { 0, 3, 9900.0, 11000.0, 2.5, false },
-    { 3, 0, 99000.0, 110000.0, 3, true }
+    { 1, 0, 990.0, 1100.0, 2.2, true },
+    { 2, 0, 9900.0, 11000.0, 2.2, true },
+    { 0, 3, 9900.0, 11000.0, 2.2, false },
+    { 3, 0, 99000.0, 110000.0, 2.5, true }
   };
 
   // board setup
@@ -286,8 +291,6 @@ void calInputI()
   // preparation
   calClearScreen();
   tft.println("[ ADJUST CURRENT INPUT ]");
-  tft.println("Short JP1.");
-  waitForUser();
 
   float current, calR;
   for (uint preset = 0; preset < 7; preset++)
@@ -310,7 +313,6 @@ void calInputI()
       tft.print(calSetups[preset].calRmax, 0);
       tft.println("R.");
       tft.println("Use 4 wire connection.");
-      //waitForUser();
       tft.println("Enter exact value:");
       calR = enterFloat(calSetups[preset].calRmin, calSetups[preset].calRmax, "Ohm", UNIT_PREFIX_NONE | UNIT_PREFIX_KILO);
       calClearScreen();
@@ -346,14 +348,13 @@ void calInputI()
     {
       calInB.gainFactor[board.getPGAGainI()] = current / adReadings.i_rms;
       sprintf(buf, "%E", calInB.gainFactor[board.getPGAGainI()]);
-      tft.println(buf);    }
+      tft.println(buf);
+    }
     waitForUser();
   }
 
   // finished
-  calClearScreen();
   tft.println("Done.");
-  tft.println("Remove JP1.");
   waitForUser();
 }
 
