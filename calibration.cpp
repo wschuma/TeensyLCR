@@ -217,7 +217,7 @@ void calInputV()
     tft.print("Adjust PGA V gain ");
     tft.println(preset);
     if (preset > 0) {
-      tft.println("Connect calibration cable.")
+      tft.println("Connect calibration cable.");
       tft.print("Use ");
       tft.print(calSetups[preset].calr);
       tft.println("R cal resistor.");
