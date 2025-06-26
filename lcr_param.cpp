@@ -163,7 +163,7 @@ lcr_param_t lcrParamXs {
 lcr_param_t lcrParamPhiD {
   .label = "Phi",
   .unit = "o",
-  .resolution = -3,
+  .resolution = -1,
   .value = &getValuePhiD,
 };
 
