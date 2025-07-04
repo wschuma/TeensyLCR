@@ -174,7 +174,11 @@ void calc_lcr() {
   
   value = lcrParams[lcrSettings.function][SECONDARY]->value(z, lcrSettings.frequency);
   resolution = lcrParams[lcrSettings.function][SECONDARY]->resolution;
-  getDisplValue(value, 5, resolution, &val);
+  // show only 4 Phi (deg) digits
+  if (lcrSettings.function == 11)
+    getDisplValue(value, 4, resolution, &val);
+  else
+    getDisplValue(value, 5, resolution, &val);
   val.unit = lcrParams[lcrSettings.function][SECONDARY]->unit;
   drawSecondaryDisplay(&val);
 }
