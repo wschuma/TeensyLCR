@@ -196,6 +196,9 @@ void adAverageReadings()
   adReadings.a1 = atan2(adReadings.mean2, adReadings.mean1);
   adReadings.a2 = atan2(adReadings.mean4, adReadings.mean3);
   adReadings.phase = adReadings.a1 - adReadings.a2;
+  // apply phase correction
+  adReadings.phase -= (calPhaseInputA[board.getPGAGainV()] + calPhaseInputB[board.getPGAGainI()]) * _frequency;
+
   adDataAvailable = true;
 }
 

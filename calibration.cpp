@@ -11,6 +11,11 @@ calFactorOutput_t calOutA;
 calFactorInputA_t calInA;
 calFactorInputB_t calInB;
 
+// Phase correction values
+// Measured phase depends on gain and frequency
+float calPhaseInputA[PGA_GAIN_NUM] = {0, 1.4879e-6, 4.3633e-8, -1.5054e-6};
+float calPhaseInputB[PGA_GAIN_NUM] = {0, -1.4879e-6, -4.3633e-8, 1.8064e-6};
+
 // init calibration data
 void calInit()
 {

@@ -25,6 +25,9 @@ extern calFactorOutput_t calOutA;
 extern calFactorInputA_t calInA;
 extern calFactorInputB_t calInB;
 
+extern float calPhaseInputA[PGA_GAIN_NUM];
+extern float calPhaseInputB[PGA_GAIN_NUM];
+
 void calInit();
 void functionCalib();
 
