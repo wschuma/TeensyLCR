@@ -128,8 +128,16 @@ Save screenshots (BMP format) to USB thump drive:
 
 ## Software implementation details
 
-- Teensy Audio design:
+### Teensy Audio Design
 
 ![Teensy Audio design](docs/Teensy_AudioSystemDesign.PNG)
 
 - Phase calculation works exactly as described in [TIDA-060029](https://www.ti.com/tool/TIDA-060029) LCR meter analog front end reference design.
+
+### Used libraries
+
+- [I2C_EEPROM](https://github.com/RobTillaart/I2C_EEPROM)
+- [I2C Temperature Sensors derived](https://github.com/jeremycole/Temperature_LM75_Derived)
+- [ILI9341_t3n](https://github.com/KurtE/ILI9341_t3n)
+- [Complex](https://github.com/RobTillaart/Complex) - 
+   Attention! Follow the instructions under [Note](https://github.com/RobTillaart/Complex?tab=readme-ov-file#note) to use the `Complex` library with Teensy.
